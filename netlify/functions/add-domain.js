@@ -1,4 +1,14 @@
-const pool = require('./utils/db');
+const { Pool } = require('pg');
+
+// Database connection
+const pool = new Pool({
+    host: 'aws-1-ap-southeast-1.pooler.supabase.com',
+    database: 'postgres',
+    user: 'postgres.vkgjvslafnshlsrrcrar',
+    password: 'Melpost123@',
+    port: 5432,
+    ssl: { rejectUnauthorized: false }
+});
 
 exports.handler = async (event, context) => {
     const headers = {
