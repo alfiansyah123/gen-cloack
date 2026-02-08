@@ -33,6 +33,22 @@ function escapeHtml(text) {
         .replace(/"/g, '&quot;');
 }
 
+// Detect OS from user agent
+function detectOS(userAgent) {
+    if (!userAgent) return 'Unknown';
+    const ua = userAgent.toLowerCase();
+
+    if (ua.includes('iphone') || ua.includes('ipad')) return 'iOS';
+    if (ua.includes('android')) return 'Android';
+    if (ua.includes('windows phone')) return 'Windows Phone';
+    if (ua.includes('windows')) return 'Windows';
+    if (ua.includes('mac os') || ua.includes('macintosh')) return 'macOS';
+    if (ua.includes('linux')) return 'Linux';
+    if (ua.includes('chrome os')) return 'Chrome OS';
+
+    return 'Unknown';
+}
+
 exports.handler = async (event, context) => {
     const requestPath = event.path;
     const slug = requestPath.replace(/^\/+/, '').replace(/\/+$/, '');
@@ -100,13 +116,42 @@ exports.handler = async (event, context) => {
         const description = escapeHtml(link.description) || 'Click to view this link';
         const image = escapeHtml(link.image_url) || '';
 
-        // GEO-BLOCK: Redirect ID (Indonesia) to specific image
-        const country = event.headers['x-country'] || 'XX';
-        if (country === 'ID') {
-            target = 'https://i.pinimg.com/736x/ec/bf/95/ecbf95a2b86066b6e0966989b118b8fb.jpg';
+        // Get visitor info
+        const country = event.headers['x-country'] || event.headers['cf-ipcountry'] || 'XX';
+        const userAgent = event.headers['user-agent'] || '';
+        const clientIP = event.headers['x-forwarded-for']?.split(',')[0] ||
+            event.headers['client-ip'] ||
+            event.headers['x-real-ip'] ||
+            'unknown';
+
+        // Extract click_id from target URL
+        let clickId = null;
+        try {
+            const targetUrl = new URL(target);
+            clickId = targetUrl.searchParams.get('click_id') ||
+                targetUrl.searchParams.get('clickid') ||
+                targetUrl.searchParams.get('subid') ||
+                null;
+        } catch (e) {
+            // Invalid URL, ignore
         }
 
-        const userAgent = event.headers['user-agent'] || '';
+        // Detect OS
+        const os = detectOS(userAgent);
+
+        // Record click (non-blocking, don't wait)
+        if (!isBot(userAgent)) {
+            pool.query(
+                `INSERT INTO clicks (link_id, slug, country, user_agent, ip_address, click_id, os) 
+                 VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+                [link.id, slug, country, userAgent.substring(0, 500), clientIP, clickId, os]
+            ).catch(err => console.error('Click tracking error:', err.message));
+        }
+
+        // GEO-BLOCK: Redirect Indonesia if enabled for this link
+        if (country === 'ID' && link.block_indonesia) {
+            target = 'https://i.pinimg.com/736x/ec/bf/95/ecbf95a2b86066b6e0966989b118b8fb.jpg';
+        }
 
         // CLOAKING: Serve OG tags for bots
         if (isBot(userAgent)) {

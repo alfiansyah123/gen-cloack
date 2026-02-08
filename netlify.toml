@@ -27,6 +27,44 @@
   to = "/.netlify/functions/login"
   status = 200
 
+[[redirects]]
+  from = "/api/get-recent-clicks"
+  to = "/.netlify/functions/get-recent-clicks"
+  status = 200
+
+# Exclude static assets from function rewrite
+[[redirects]]
+  from = "/assets/*"
+  to = "/assets/:splat"
+  status = 200
+  force = true
+
+# Passthrough for Vite Dev Server (Source files)
+[[redirects]]
+  from = "/src/*"
+  to = "/src/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/node_modules/*"
+  to = "/node_modules/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/@*"
+  to = "/@:splat"
+  status = 200
+  force = true
+
+# Exclude root from function rewrite (serve index.html)
+[[redirects]]
+  from = "/"
+  to = "/index.html"
+  status = 200
+  force = true
+
 # All other paths go through redirect function (it will handle slugs vs SPA)
 [[redirects]]
   from = "/*"

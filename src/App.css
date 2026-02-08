@@ -172,6 +172,34 @@ body::after {
 }
 
 /* Main Content */
+/* Dashboard Grid with Sidebar - 16:9 Layout */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 280px minmax(600px, 800px);
+  gap: 24px;
+  align-items: start;
+  justify-content: center;
+}
+
+.sidebar {
+  position: sticky;
+  top: 20px;
+  order: -1;
+}
+
+@media (max-width: 950px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+    max-width: 700px;
+    margin: 0 auto;
+  }
+
+  .sidebar {
+    position: static;
+    order: 0;
+  }
+}
+
 .main-content {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -249,6 +277,59 @@ body::after {
 
 .flex-1 {
   flex: 1;
+}
+
+/* Toggle Switch */
+.toggle-group {
+  display: flex;
+  align-items: center;
+}
+
+.toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: #374151;
+}
+
+.toggle-label input {
+  display: none;
+}
+
+.toggle-switch {
+  width: 44px;
+  height: 24px;
+  background: #d1d5db;
+  border-radius: 12px;
+  position: relative;
+  transition: background 0.3s ease;
+}
+
+.toggle-switch::after {
+  content: '';
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  background: white;
+  border-radius: 50%;
+  top: 2px;
+  left: 2px;
+  transition: transform 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.toggle-label input:checked+.toggle-switch {
+  background: #f97316;
+}
+
+.toggle-label input:checked+.toggle-switch::after {
+  transform: translateX(20px);
+}
+
+.toggle-text {
+  font-weight: 500;
 }
 
 .label {

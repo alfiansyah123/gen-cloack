@@ -1,0 +1,158 @@
+.live-traffic {
+    background: rgba(255, 255, 255, 0.45);
+    border-radius: 24px;
+    padding: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    box-shadow:
+        0 8px 32px 0 rgba(31, 38, 135, 0.05),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+}
+
+.live-traffic-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.live-traffic-header h3 {
+    margin: 0;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #1f2937;
+    flex: 1;
+}
+
+.live-dot {
+    width: 8px;
+    height: 8px;
+    background: #22c55e;
+    border-radius: 50%;
+    animation: pulse 2s ease-in-out infinite;
+    box-shadow: 0 0 8px rgba(34, 197, 94, 0.6);
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.6;
+        transform: scale(0.9);
+    }
+}
+
+.traffic-count {
+    font-size: 0.7rem;
+    color: rgba(31, 38, 135, 0.6);
+    background: rgba(249, 115, 22, 0.1);
+    padding: 2px 8px;
+    border-radius: 10px;
+}
+
+.traffic-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.traffic-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    background: rgba(249, 115, 22, 0.05);
+    border-radius: 8px;
+    animation: slideIn 0.3s ease-out forwards;
+    opacity: 0;
+    transform: translateX(-10px);
+}
+
+@keyframes slideIn {
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.traffic-icons {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+.traffic-flag {
+    font-size: 1rem;
+}
+
+.traffic-os {
+    font-size: 0.8rem;
+}
+
+.traffic-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.traffic-slug {
+    font-size: 0.8rem;
+    color: #f97316;
+    font-family: monospace;
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.traffic-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.traffic-ip {
+    font-size: 0.65rem;
+    color: rgba(31, 38, 135, 0.5);
+    font-family: monospace;
+}
+
+.traffic-time {
+    font-size: 0.65rem;
+    color: rgba(31, 38, 135, 0.4);
+}
+
+.no-traffic,
+.traffic-loading {
+    text-align: center;
+    padding: 20px;
+    color: rgba(31, 38, 135, 0.4);
+    font-size: 0.85rem;
+}
+
+/* Scrollbar styling */
+.traffic-list::-webkit-scrollbar {
+    width: 4px;
+}
+
+.traffic-list::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+}
+
+.traffic-list::-webkit-scrollbar-thumb {
+    background: rgba(249, 115, 22, 0.3);
+    border-radius: 4px;
+}
