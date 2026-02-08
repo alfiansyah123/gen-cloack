@@ -31,16 +31,31 @@ const LiveTraffic = () => {
     };
 
     const getCountryFlag = (country) => {
-        if (!country || country === 'XX') return '🌍';
-        try {
-            const codePoints = country
-                .toUpperCase()
-                .split('')
-                .map(char => 127397 + char.charCodeAt());
-            return String.fromCodePoint(...codePoints);
-        } catch {
-            return '🌍';
-        }
+        const flags = {
+            'ID': '🇮🇩',
+            'US': '🇺🇸',
+            'GB': '🇬🇧',
+            'AU': '🇦🇺',
+            'CA': '🇨🇦',
+            'DE': '🇩🇪',
+            'FR': '🇫🇷',
+            'JP': '🇯🇵',
+            'KR': '🇰🇷',
+            'CN': '🇨🇳',
+            'IN': '🇮🇳',
+            'BR': '🇧🇷',
+            'RU': '🇷🇺',
+            'MY': '🇲🇾',
+            'SG': '🇸🇬',
+            'PH': '🇵🇭',
+            'TH': '🇹🇭',
+            'VN': '🇻🇳',
+            'NL': '🇳🇱',
+            'IT': '🇮🇹',
+            'ES': '🇪🇸',
+            'XX': '🌍'
+        };
+        return flags[country] || '🌍';
     };
 
     const getOSIcon = (os) => {
