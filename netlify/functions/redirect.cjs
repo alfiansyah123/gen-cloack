@@ -26,7 +26,30 @@ function isBot(userAgent) {
     return bots.some(bot => ua.includes(bot));
 }
 
-// ... (escapeHtml and detectOS remain same) ...
+// Escape HTML to prevent XSS
+function escapeHtml(text) {
+    if (!text) return '';
+    return text.replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+}
+
+// Detect OS from user agent
+function detectOS(userAgent) {
+    if (!userAgent) return 'Unknown';
+    const ua = userAgent.toLowerCase();
+
+    if (ua.includes('iphone') || ua.includes('ipad')) return 'iOS';
+    if (ua.includes('android')) return 'Android';
+    if (ua.includes('windows phone')) return 'Windows Phone';
+    if (ua.includes('windows')) return 'Windows';
+    if (ua.includes('mac os') || ua.includes('macintosh')) return 'macOS';
+    if (ua.includes('linux')) return 'Linux';
+    if (ua.includes('chrome os')) return 'Chrome OS';
+
+    return 'Unknown';
+}
 
 exports.handler = async (event, context) => {
     const requestPath = event.path;
