@@ -3,6 +3,7 @@ import './LiveTraffic.css';
 import androidIcon from '../assets/android-icon.png';
 import appleIcon from '../assets/apple-icon.png';
 import windowsIcon from '../assets/windows-icon.png';
+import { supabase } from '../supabaseClient';
 
 const LiveTraffic = () => {
     const [clicks, setClicks] = useState([]);
@@ -24,8 +25,43 @@ const LiveTraffic = () => {
 
     useEffect(() => {
         fetchClicks();
-        const interval = setInterval(fetchClicks, 5000);
-        return () => clearInterval(interval);
+
+        // Realtime Subscription
+        const channel = supabase
+            .channel('live-traffic')
+            .on(
+                'postgres_changes',
+                { event: 'INSERT', schema: 'public', table: 'clicks' },
+                async (payload) => {
+                    const newClick = payload.new;
+
+                    // Fetch link details because payload doesn't have joined data
+                    const { data: linkData } = await supabase
+                        .from('links')
+                        .select('original_url, title')
+                        .eq('id', newClick.link_id)
+                        .single();
+
+                    const formattedClick = {
+                        id: newClick.id,
+                        slug: newClick.slug,
+                        country: newClick.country,
+                        ip: newClick.ip_address,
+                        time: newClick.created_at,
+                        os: newClick.os,
+                        clickId: newClick.click_id,
+                        url: linkData?.original_url || '',
+                        title: linkData?.title || newClick.slug
+                    };
+
+                    setClicks(prev => [formattedClick, ...prev].slice(0, 20));
+                }
+            )
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
     }, []);
 
     const formatTime = (timestamp) => {

@@ -99,7 +99,6 @@ const Reports = () => {
                                     <th>Country</th>
                                     <th>OS</th>
                                     <th>IP Address</th>
-                                    <th>IP Address</th>
                                     <th>Target URL</th>
                                 </tr>
                             </thead>
