@@ -4,6 +4,194 @@ var __name = (target, value) => __defProp(target, "name", { value, configurable:
 // .wrangler/tmp/pages-o7r1l9/functionsWorker-0.4758669975853448.mjs
 var __defProp2 = Object.defineProperty;
 var __name2 = /* @__PURE__ */ __name((target, value) => __defProp2(target, "name", { value, configurable: true }), "__name");
+async function onRequestPost(context) {
+  const headers = {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Headers": "Content-Type",
+    "Content-Type": "application/json"
+  };
+  try {
+    const { domain, cfToken, cfAccountId } = await context.request.json();
+    if (!domain || !cfToken || !cfAccountId) {
+      return new Response(JSON.stringify({
+        error: "Missing required fields: domain, cfToken, cfAccountId"
+      }), { status: 400, headers });
+    }
+    const cfResponse = await fetch("https://api.cloudflare.com/client/v4/zones", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${cfToken}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        name: domain,
+        account: { id: cfAccountId },
+        type: "full"
+        // Full DNS setup
+      })
+    });
+    const cfData = await cfResponse.json();
+    if (!cfData.success) {
+      const errors = cfData.errors || [];
+      const alreadyExists = errors.some((e) => e.code === 1061);
+      if (alreadyExists) {
+        const listResponse = await fetch(
+          `https://api.cloudflare.com/client/v4/zones?name=${domain}&account.id=${cfAccountId}`,
+          {
+            headers: {
+              "Authorization": `Bearer ${cfToken}`,
+              "Content-Type": "application/json"
+            }
+          }
+        );
+        const listData = await listResponse.json();
+        if (listData.success && listData.result.length > 0) {
+          const zone2 = listData.result[0];
+          return new Response(JSON.stringify({
+            success: true,
+            zone_id: zone2.id,
+            nameservers: zone2.name_servers,
+            status: zone2.status,
+            message: "Zone already exists"
+          }), { status: 200, headers });
+        }
+      }
+      return new Response(JSON.stringify({
+        error: errors[0]?.message || "Failed to add zone",
+        details: errors
+      }), { status: 400, headers });
+    }
+    const zone = cfData.result;
+    return new Response(JSON.stringify({
+      success: true,
+      zone_id: zone.id,
+      nameservers: zone.name_servers,
+      status: zone.status,
+      message: "Zone created successfully"
+    }), { status: 200, headers });
+  } catch (err) {
+    return new Response(JSON.stringify({
+      error: err.message
+    }), { status: 500, headers });
+  }
+}
+__name(onRequestPost, "onRequestPost");
+__name2(onRequestPost, "onRequestPost");
+async function onRequestOptions() {
+  return new Response(null, {
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "POST, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type"
+    }
+  });
+}
+__name(onRequestOptions, "onRequestOptions");
+__name2(onRequestOptions, "onRequestOptions");
+async function onRequestPost2(context) {
+  const headers = {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Headers": "Content-Type",
+    "Content-Type": "application/json"
+  };
+  try {
+    const { zoneId, domain, cfToken } = await context.request.json();
+    if (!zoneId || !domain || !cfToken) {
+      return new Response(JSON.stringify({
+        error: "Missing required fields: zoneId, domain, cfToken"
+      }), { status: 400, headers });
+    }
+    const pagesTarget = context.env.PAGES_DOMAIN || "gen-cloack.pages.dev";
+    const records = [
+      { type: "CNAME", name: "@", content: pagesTarget, proxied: true },
+      { type: "CNAME", name: "*", content: pagesTarget, proxied: true }
+    ];
+    const results = [];
+    for (const record of records) {
+      const checkResponse = await fetch(
+        `https://api.cloudflare.com/client/v4/zones/${zoneId}/dns_records?type=${record.type}&name=${record.name === "@" ? domain : record.name + "." + domain}`,
+        {
+          headers: {
+            "Authorization": `Bearer ${cfToken}`,
+            "Content-Type": "application/json"
+          }
+        }
+      );
+      const checkData = await checkResponse.json();
+      if (checkData.success && checkData.result.length > 0) {
+        const existingId = checkData.result[0].id;
+        const updateResponse = await fetch(
+          `https://api.cloudflare.com/client/v4/zones/${zoneId}/dns_records/${existingId}`,
+          {
+            method: "PUT",
+            headers: {
+              "Authorization": `Bearer ${cfToken}`,
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              type: record.type,
+              name: record.name,
+              content: record.content,
+              proxied: record.proxied
+            })
+          }
+        );
+        const updateData = await updateResponse.json();
+        results.push({
+          record: record.name,
+          action: "updated",
+          success: updateData.success
+        });
+      } else {
+        const createResponse = await fetch(
+          `https://api.cloudflare.com/client/v4/zones/${zoneId}/dns_records`,
+          {
+            method: "POST",
+            headers: {
+              "Authorization": `Bearer ${cfToken}`,
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              type: record.type,
+              name: record.name,
+              content: record.content,
+              proxied: record.proxied
+            })
+          }
+        );
+        const createData = await createResponse.json();
+        results.push({
+          record: record.name,
+          action: "created",
+          success: createData.success,
+          error: createData.errors?.[0]?.message
+        });
+      }
+    }
+    return new Response(JSON.stringify({
+      success: true,
+      records: results,
+      message: "DNS records configured"
+    }), { status: 200, headers });
+  } catch (err) {
+    return new Response(JSON.stringify({
+      error: err.message
+    }), { status: 500, headers });
+  }
+}
+__name(onRequestPost2, "onRequestPost2");
+__name2(onRequestPost2, "onRequestPost");
+async function onRequestOptions2() {
+  return new Response(null, {
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "POST, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type"
+    }
+  });
+}
+__name(onRequestOptions2, "onRequestOptions2");
+__name2(onRequestOptions2, "onRequestOptions");
 function __rest(s, e) {
   var t = {};
   for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
@@ -11996,7 +12184,7 @@ if (shouldShowDeprecationWarning()) console.warn("\u26A0\uFE0F  Node.js 18 and b
 var createSupabaseClient = /* @__PURE__ */ __name2((env) => {
   return createClient(env.SUPABASE_URL, env.SUPABASE_KEY);
 }, "createSupabaseClient");
-async function onRequestPost(context) {
+async function onRequestPost3(context) {
   const supabase = createSupabaseClient(context.env);
   const headers = {
     "Access-Control-Allow-Origin": "*",
@@ -12022,9 +12210,9 @@ async function onRequestPost(context) {
     return new Response(JSON.stringify({ success: false, error: error.message }), { status: 500, headers });
   }
 }
-__name(onRequestPost, "onRequestPost");
-__name2(onRequestPost, "onRequestPost");
-async function onRequestOptions() {
+__name(onRequestPost3, "onRequestPost3");
+__name2(onRequestPost3, "onRequestPost");
+async function onRequestOptions3() {
   return new Response(null, {
     headers: {
       "Access-Control-Allow-Origin": "*",
@@ -12033,8 +12221,8 @@ async function onRequestOptions() {
     }
   });
 }
-__name(onRequestOptions, "onRequestOptions");
-__name2(onRequestOptions, "onRequestOptions");
+__name(onRequestOptions3, "onRequestOptions3");
+__name2(onRequestOptions3, "onRequestOptions");
 async function onRequestGet(context) {
   const supabase = createSupabaseClient(context.env);
   const headers = {
@@ -12157,7 +12345,7 @@ function generateToken(username) {
 }
 __name(generateToken, "generateToken");
 __name2(generateToken, "generateToken");
-async function onRequestPost2(context) {
+async function onRequestPost4(context) {
   const headers = {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Headers": "Content-Type",
@@ -12181,9 +12369,9 @@ async function onRequestPost2(context) {
     return new Response(JSON.stringify({ success: false, error: "Server error" }), { status: 500, headers });
   }
 }
-__name(onRequestPost2, "onRequestPost2");
-__name2(onRequestPost2, "onRequestPost");
-async function onRequestOptions2() {
+__name(onRequestPost4, "onRequestPost4");
+__name2(onRequestPost4, "onRequestPost");
+async function onRequestOptions4() {
   return new Response(null, {
     headers: {
       "Access-Control-Allow-Origin": "*",
@@ -12192,9 +12380,9 @@ async function onRequestOptions2() {
     }
   });
 }
-__name(onRequestOptions2, "onRequestOptions2");
-__name2(onRequestOptions2, "onRequestOptions");
-async function onRequestPost3(context) {
+__name(onRequestOptions4, "onRequestOptions4");
+__name2(onRequestOptions4, "onRequestOptions");
+async function onRequestPost5(context) {
   const supabase = createSupabaseClient(context.env);
   const headers = {
     "Access-Control-Allow-Origin": "*",
@@ -12232,9 +12420,9 @@ async function onRequestPost3(context) {
     return new Response(JSON.stringify({ error: "Internal Server Error" }), { status: 500, headers });
   }
 }
-__name(onRequestPost3, "onRequestPost3");
-__name2(onRequestPost3, "onRequestPost");
-async function onRequestOptions3() {
+__name(onRequestPost5, "onRequestPost5");
+__name2(onRequestPost5, "onRequestPost");
+async function onRequestOptions5() {
   return new Response(null, {
     headers: {
       "Access-Control-Allow-Origin": "*",
@@ -12243,8 +12431,8 @@ async function onRequestOptions3() {
     }
   });
 }
-__name(onRequestOptions3, "onRequestOptions3");
-__name2(onRequestOptions3, "onRequestOptions");
+__name(onRequestOptions5, "onRequestOptions5");
+__name2(onRequestOptions5, "onRequestOptions");
 function isBot(userAgent) {
   if (!userAgent) return true;
   const ua = userAgent.toLowerCase();
@@ -12356,18 +12544,46 @@ __name(onRequest, "onRequest");
 __name2(onRequest, "onRequest");
 var routes = [
   {
+    routePath: "/api/cloudflare/add-zone",
+    mountPath: "/api/cloudflare",
+    method: "OPTIONS",
+    middlewares: [],
+    modules: [onRequestOptions]
+  },
+  {
+    routePath: "/api/cloudflare/add-zone",
+    mountPath: "/api/cloudflare",
+    method: "POST",
+    middlewares: [],
+    modules: [onRequestPost]
+  },
+  {
+    routePath: "/api/cloudflare/setup-dns",
+    mountPath: "/api/cloudflare",
+    method: "OPTIONS",
+    middlewares: [],
+    modules: [onRequestOptions2]
+  },
+  {
+    routePath: "/api/cloudflare/setup-dns",
+    mountPath: "/api/cloudflare",
+    method: "POST",
+    middlewares: [],
+    modules: [onRequestPost2]
+  },
+  {
     routePath: "/api/add-domain",
     mountPath: "/api",
     method: "OPTIONS",
     middlewares: [],
-    modules: [onRequestOptions]
+    modules: [onRequestOptions3]
   },
   {
     routePath: "/api/add-domain",
     mountPath: "/api",
     method: "POST",
     middlewares: [],
-    modules: [onRequestPost]
+    modules: [onRequestPost3]
   },
   {
     routePath: "/api/get-clicks-report",
@@ -12395,28 +12611,28 @@ var routes = [
     mountPath: "/api",
     method: "OPTIONS",
     middlewares: [],
-    modules: [onRequestOptions2]
+    modules: [onRequestOptions4]
   },
   {
     routePath: "/api/login",
     mountPath: "/api",
     method: "POST",
     middlewares: [],
-    modules: [onRequestPost2]
+    modules: [onRequestPost4]
   },
   {
     routePath: "/api/save-link",
     mountPath: "/api",
     method: "OPTIONS",
     middlewares: [],
-    modules: [onRequestOptions3]
+    modules: [onRequestOptions5]
   },
   {
     routePath: "/api/save-link",
     mountPath: "/api",
     method: "POST",
     middlewares: [],
-    modules: [onRequestPost3]
+    modules: [onRequestPost5]
   },
   {
     routePath: "/:path*",

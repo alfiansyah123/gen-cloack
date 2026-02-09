@@ -5,8 +5,16 @@ import { fetchDomains, saveLink, addDomain } from './services/api'
 import Login from './components/Login'
 import LiveTraffic from './components/LiveTraffic'
 import Reports from './components/Reports'
+import Admin from './components/Admin'
 
 function App() {
+  // Check if on admin page
+  const isAdminPage = window.location.pathname === '/admin';
+
+  // If admin page, render Admin component
+  if (isAdminPage) {
+    return <Admin />;
+  }
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [checkingAuth, setCheckingAuth] = useState(true)
   const [activeTab, setActiveTab] = useState('generator')

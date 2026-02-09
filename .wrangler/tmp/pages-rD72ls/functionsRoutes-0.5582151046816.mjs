@@ -1,3 +1,7 @@
+import { onRequestOptions as __api_cloudflare_add_zone_js_onRequestOptions } from "C:\\project\\Link Generator\\functions\\api\\cloudflare\\add-zone.js"
+import { onRequestPost as __api_cloudflare_add_zone_js_onRequestPost } from "C:\\project\\Link Generator\\functions\\api\\cloudflare\\add-zone.js"
+import { onRequestOptions as __api_cloudflare_setup_dns_js_onRequestOptions } from "C:\\project\\Link Generator\\functions\\api\\cloudflare\\setup-dns.js"
+import { onRequestPost as __api_cloudflare_setup_dns_js_onRequestPost } from "C:\\project\\Link Generator\\functions\\api\\cloudflare\\setup-dns.js"
 import { onRequestOptions as __api_add_domain_js_onRequestOptions } from "C:\\project\\Link Generator\\functions\\api\\add-domain.js"
 import { onRequestPost as __api_add_domain_js_onRequestPost } from "C:\\project\\Link Generator\\functions\\api\\add-domain.js"
 import { onRequestGet as __api_get_clicks_report_js_onRequestGet } from "C:\\project\\Link Generator\\functions\\api\\get-clicks-report.js"
@@ -11,6 +15,34 @@ import { onRequest as ____path___js_onRequest } from "C:\\project\\Link Generato
 
 export const routes = [
     {
+      routePath: "/api/cloudflare/add-zone",
+      mountPath: "/api/cloudflare",
+      method: "OPTIONS",
+      middlewares: [],
+      modules: [__api_cloudflare_add_zone_js_onRequestOptions],
+    },
+  {
+      routePath: "/api/cloudflare/add-zone",
+      mountPath: "/api/cloudflare",
+      method: "POST",
+      middlewares: [],
+      modules: [__api_cloudflare_add_zone_js_onRequestPost],
+    },
+  {
+      routePath: "/api/cloudflare/setup-dns",
+      mountPath: "/api/cloudflare",
+      method: "OPTIONS",
+      middlewares: [],
+      modules: [__api_cloudflare_setup_dns_js_onRequestOptions],
+    },
+  {
+      routePath: "/api/cloudflare/setup-dns",
+      mountPath: "/api/cloudflare",
+      method: "POST",
+      middlewares: [],
+      modules: [__api_cloudflare_setup_dns_js_onRequestPost],
+    },
+  {
       routePath: "/api/add-domain",
       mountPath: "/api",
       method: "OPTIONS",

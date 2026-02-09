@@ -1,6 +1,194 @@
 var __defProp = Object.defineProperty;
 var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
 
+// api/cloudflare/add-zone.js
+async function onRequestPost(context) {
+  const headers = {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Headers": "Content-Type",
+    "Content-Type": "application/json"
+  };
+  try {
+    const { domain, cfToken, cfAccountId } = await context.request.json();
+    if (!domain || !cfToken || !cfAccountId) {
+      return new Response(JSON.stringify({
+        error: "Missing required fields: domain, cfToken, cfAccountId"
+      }), { status: 400, headers });
+    }
+    const cfResponse = await fetch("https://api.cloudflare.com/client/v4/zones", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${cfToken}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        name: domain,
+        account: { id: cfAccountId },
+        type: "full"
+        // Full DNS setup
+      })
+    });
+    const cfData = await cfResponse.json();
+    if (!cfData.success) {
+      const errors = cfData.errors || [];
+      const alreadyExists = errors.some((e) => e.code === 1061);
+      if (alreadyExists) {
+        const listResponse = await fetch(
+          `https://api.cloudflare.com/client/v4/zones?name=${domain}&account.id=${cfAccountId}`,
+          {
+            headers: {
+              "Authorization": `Bearer ${cfToken}`,
+              "Content-Type": "application/json"
+            }
+          }
+        );
+        const listData = await listResponse.json();
+        if (listData.success && listData.result.length > 0) {
+          const zone2 = listData.result[0];
+          return new Response(JSON.stringify({
+            success: true,
+            zone_id: zone2.id,
+            nameservers: zone2.name_servers,
+            status: zone2.status,
+            message: "Zone already exists"
+          }), { status: 200, headers });
+        }
+      }
+      return new Response(JSON.stringify({
+        error: errors[0]?.message || "Failed to add zone",
+        details: errors
+      }), { status: 400, headers });
+    }
+    const zone = cfData.result;
+    return new Response(JSON.stringify({
+      success: true,
+      zone_id: zone.id,
+      nameservers: zone.name_servers,
+      status: zone.status,
+      message: "Zone created successfully"
+    }), { status: 200, headers });
+  } catch (err) {
+    return new Response(JSON.stringify({
+      error: err.message
+    }), { status: 500, headers });
+  }
+}
+__name(onRequestPost, "onRequestPost");
+async function onRequestOptions() {
+  return new Response(null, {
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "POST, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type"
+    }
+  });
+}
+__name(onRequestOptions, "onRequestOptions");
+
+// api/cloudflare/setup-dns.js
+async function onRequestPost2(context) {
+  const headers = {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Headers": "Content-Type",
+    "Content-Type": "application/json"
+  };
+  try {
+    const { zoneId, domain, cfToken } = await context.request.json();
+    if (!zoneId || !domain || !cfToken) {
+      return new Response(JSON.stringify({
+        error: "Missing required fields: zoneId, domain, cfToken"
+      }), { status: 400, headers });
+    }
+    const pagesTarget = context.env.PAGES_DOMAIN || "gen-cloack.pages.dev";
+    const records = [
+      { type: "CNAME", name: "@", content: pagesTarget, proxied: true },
+      { type: "CNAME", name: "*", content: pagesTarget, proxied: true }
+    ];
+    const results = [];
+    for (const record of records) {
+      const checkResponse = await fetch(
+        `https://api.cloudflare.com/client/v4/zones/${zoneId}/dns_records?type=${record.type}&name=${record.name === "@" ? domain : record.name + "." + domain}`,
+        {
+          headers: {
+            "Authorization": `Bearer ${cfToken}`,
+            "Content-Type": "application/json"
+          }
+        }
+      );
+      const checkData = await checkResponse.json();
+      if (checkData.success && checkData.result.length > 0) {
+        const existingId = checkData.result[0].id;
+        const updateResponse = await fetch(
+          `https://api.cloudflare.com/client/v4/zones/${zoneId}/dns_records/${existingId}`,
+          {
+            method: "PUT",
+            headers: {
+              "Authorization": `Bearer ${cfToken}`,
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              type: record.type,
+              name: record.name,
+              content: record.content,
+              proxied: record.proxied
+            })
+          }
+        );
+        const updateData = await updateResponse.json();
+        results.push({
+          record: record.name,
+          action: "updated",
+          success: updateData.success
+        });
+      } else {
+        const createResponse = await fetch(
+          `https://api.cloudflare.com/client/v4/zones/${zoneId}/dns_records`,
+          {
+            method: "POST",
+            headers: {
+              "Authorization": `Bearer ${cfToken}`,
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              type: record.type,
+              name: record.name,
+              content: record.content,
+              proxied: record.proxied
+            })
+          }
+        );
+        const createData = await createResponse.json();
+        results.push({
+          record: record.name,
+          action: "created",
+          success: createData.success,
+          error: createData.errors?.[0]?.message
+        });
+      }
+    }
+    return new Response(JSON.stringify({
+      success: true,
+      records: results,
+      message: "DNS records configured"
+    }), { status: 200, headers });
+  } catch (err) {
+    return new Response(JSON.stringify({
+      error: err.message
+    }), { status: 500, headers });
+  }
+}
+__name(onRequestPost2, "onRequestPost");
+async function onRequestOptions2() {
+  return new Response(null, {
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "POST, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type"
+    }
+  });
+}
+__name(onRequestOptions2, "onRequestOptions");
+
 // ../node_modules/tslib/tslib.es6.mjs
 function __rest(s, e) {
   var t = {};
@@ -11779,7 +11967,7 @@ var createSupabaseClient = /* @__PURE__ */ __name((env) => {
 }, "createSupabaseClient");
 
 // api/add-domain.js
-async function onRequestPost(context) {
+async function onRequestPost3(context) {
   const supabase = createSupabaseClient(context.env);
   const headers = {
     "Access-Control-Allow-Origin": "*",
@@ -11805,8 +11993,8 @@ async function onRequestPost(context) {
     return new Response(JSON.stringify({ success: false, error: error.message }), { status: 500, headers });
   }
 }
-__name(onRequestPost, "onRequestPost");
-async function onRequestOptions() {
+__name(onRequestPost3, "onRequestPost");
+async function onRequestOptions3() {
   return new Response(null, {
     headers: {
       "Access-Control-Allow-Origin": "*",
@@ -11815,7 +12003,7 @@ async function onRequestOptions() {
     }
   });
 }
-__name(onRequestOptions, "onRequestOptions");
+__name(onRequestOptions3, "onRequestOptions");
 
 // api/get-clicks-report.js
 async function onRequestGet(context) {
@@ -11942,7 +12130,7 @@ function generateToken(username) {
   return btoa(`${username}:${timestamp}:${random}`);
 }
 __name(generateToken, "generateToken");
-async function onRequestPost2(context) {
+async function onRequestPost4(context) {
   const headers = {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Headers": "Content-Type",
@@ -11966,8 +12154,8 @@ async function onRequestPost2(context) {
     return new Response(JSON.stringify({ success: false, error: "Server error" }), { status: 500, headers });
   }
 }
-__name(onRequestPost2, "onRequestPost");
-async function onRequestOptions2() {
+__name(onRequestPost4, "onRequestPost");
+async function onRequestOptions4() {
   return new Response(null, {
     headers: {
       "Access-Control-Allow-Origin": "*",
@@ -11976,10 +12164,10 @@ async function onRequestOptions2() {
     }
   });
 }
-__name(onRequestOptions2, "onRequestOptions");
+__name(onRequestOptions4, "onRequestOptions");
 
 // api/save-link.js
-async function onRequestPost3(context) {
+async function onRequestPost5(context) {
   const supabase = createSupabaseClient(context.env);
   const headers = {
     "Access-Control-Allow-Origin": "*",
@@ -12017,8 +12205,8 @@ async function onRequestPost3(context) {
     return new Response(JSON.stringify({ error: "Internal Server Error" }), { status: 500, headers });
   }
 }
-__name(onRequestPost3, "onRequestPost");
-async function onRequestOptions3() {
+__name(onRequestPost5, "onRequestPost");
+async function onRequestOptions5() {
   return new Response(null, {
     headers: {
       "Access-Control-Allow-Origin": "*",
@@ -12027,7 +12215,7 @@ async function onRequestOptions3() {
     }
   });
 }
-__name(onRequestOptions3, "onRequestOptions");
+__name(onRequestOptions5, "onRequestOptions");
 
 // [[path]].js
 function isBot(userAgent) {
@@ -12139,18 +12327,46 @@ __name(onRequest, "onRequest");
 // ../.wrangler/tmp/pages-rD72ls/functionsRoutes-0.5582151046816.mjs
 var routes = [
   {
+    routePath: "/api/cloudflare/add-zone",
+    mountPath: "/api/cloudflare",
+    method: "OPTIONS",
+    middlewares: [],
+    modules: [onRequestOptions]
+  },
+  {
+    routePath: "/api/cloudflare/add-zone",
+    mountPath: "/api/cloudflare",
+    method: "POST",
+    middlewares: [],
+    modules: [onRequestPost]
+  },
+  {
+    routePath: "/api/cloudflare/setup-dns",
+    mountPath: "/api/cloudflare",
+    method: "OPTIONS",
+    middlewares: [],
+    modules: [onRequestOptions2]
+  },
+  {
+    routePath: "/api/cloudflare/setup-dns",
+    mountPath: "/api/cloudflare",
+    method: "POST",
+    middlewares: [],
+    modules: [onRequestPost2]
+  },
+  {
     routePath: "/api/add-domain",
     mountPath: "/api",
     method: "OPTIONS",
     middlewares: [],
-    modules: [onRequestOptions]
+    modules: [onRequestOptions3]
   },
   {
     routePath: "/api/add-domain",
     mountPath: "/api",
     method: "POST",
     middlewares: [],
-    modules: [onRequestPost]
+    modules: [onRequestPost3]
   },
   {
     routePath: "/api/get-clicks-report",
@@ -12178,28 +12394,28 @@ var routes = [
     mountPath: "/api",
     method: "OPTIONS",
     middlewares: [],
-    modules: [onRequestOptions2]
+    modules: [onRequestOptions4]
   },
   {
     routePath: "/api/login",
     mountPath: "/api",
     method: "POST",
     middlewares: [],
-    modules: [onRequestPost2]
+    modules: [onRequestPost4]
   },
   {
     routePath: "/api/save-link",
     mountPath: "/api",
     method: "OPTIONS",
     middlewares: [],
-    modules: [onRequestOptions3]
+    modules: [onRequestOptions5]
   },
   {
     routePath: "/api/save-link",
     mountPath: "/api",
     method: "POST",
     middlewares: [],
-    modules: [onRequestPost3]
+    modules: [onRequestPost5]
   },
   {
     routePath: "/:path*",
@@ -12697,7 +12913,7 @@ var jsonError = /* @__PURE__ */ __name(async (request, env, _ctx, middlewareCtx)
 }, "jsonError");
 var middleware_miniflare3_json_error_default = jsonError;
 
-// ../.wrangler/tmp/bundle-BdWCI6/middleware-insertion-facade.js
+// ../.wrangler/tmp/bundle-VknhgH/middleware-insertion-facade.js
 var __INTERNAL_WRANGLER_MIDDLEWARE__ = [
   middleware_ensure_req_body_drained_default,
   middleware_miniflare3_json_error_default
@@ -12729,7 +12945,7 @@ function __facade_invoke__(request, env, ctx, dispatch, finalMiddleware) {
 }
 __name(__facade_invoke__, "__facade_invoke__");
 
-// ../.wrangler/tmp/bundle-BdWCI6/middleware-loader.entry.ts
+// ../.wrangler/tmp/bundle-VknhgH/middleware-loader.entry.ts
 var __Facade_ScheduledController__ = class ___Facade_ScheduledController__ {
   constructor(scheduledTime, cron, noRetry) {
     this.scheduledTime = scheduledTime;
