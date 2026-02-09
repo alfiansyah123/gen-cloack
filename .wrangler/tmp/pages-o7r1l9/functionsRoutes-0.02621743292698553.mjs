@@ -9,6 +9,7 @@ import { onRequestPost as __api_add_domain_js_onRequestPost } from "C:\\project\
 import { onRequestOptions as __api_change_password_js_onRequestOptions } from "C:\\project\\Link Generator\\functions\\api\\change-password.js"
 import { onRequestPost as __api_change_password_js_onRequestPost } from "C:\\project\\Link Generator\\functions\\api\\change-password.js"
 import { onRequestOptions as __api_delete_domain_js_onRequestOptions } from "C:\\project\\Link Generator\\functions\\api\\delete-domain.js"
+import { onRequestGet as __api_get_admin_password_js_onRequestGet } from "C:\\project\\Link Generator\\functions\\api\\get-admin-password.js"
 import { onRequestGet as __api_get_clicks_report_js_onRequestGet } from "C:\\project\\Link Generator\\functions\\api\\get-clicks-report.js"
 import { onRequestGet as __api_get_domains_js_onRequestGet } from "C:\\project\\Link Generator\\functions\\api\\get-domains.js"
 import { onRequestGet as __api_get_recent_clicks_js_onRequestGet } from "C:\\project\\Link Generator\\functions\\api\\get-recent-clicks.js"
@@ -96,6 +97,13 @@ export const routes = [
       method: "OPTIONS",
       middlewares: [],
       modules: [__api_delete_domain_js_onRequestOptions],
+    },
+  {
+      routePath: "/api/get-admin-password",
+      mountPath: "/api",
+      method: "GET",
+      middlewares: [],
+      modules: [__api_get_admin_password_js_onRequestGet],
     },
   {
       routePath: "/api/get-clicks-report",

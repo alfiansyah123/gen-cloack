@@ -12829,6 +12829,32 @@ var init_delete_domain = __esm({
   }
 });
 async function onRequestGet(context) {
+  const headers = {
+    "Access-Control-Allow-Origin": "*",
+    "Content-Type": "application/json"
+  };
+  try {
+    const supabase = createSupabaseClient(context.env);
+    const { data, error } = await supabase.from("settings").select("value").eq("key", "admin_password").single();
+    if (error && error.code !== "PGRST116") {
+      throw error;
+    }
+    const password = data?.value || "NGEteam2025!";
+    return new Response(JSON.stringify({ success: true, password }), { status: 200, headers });
+  } catch (error) {
+    console.error("Error fetching password:", error);
+    return new Response(JSON.stringify({ error: "Failed to fetch password" }), { status: 500, headers });
+  }
+}
+__name(onRequestGet, "onRequestGet");
+var init_get_admin_password = __esm({
+  "api/get-admin-password.js"() {
+    init_functionsRoutes_0_02621743292698553();
+    init_supabase();
+    __name2(onRequestGet, "onRequestGet");
+  }
+});
+async function onRequestGet2(context) {
   const supabase = createSupabaseClient(context.env);
   const headers = {
     "Access-Control-Allow-Origin": "*",
@@ -12882,15 +12908,15 @@ async function onRequestGet(context) {
     return new Response(JSON.stringify({ error: "Failed to fetch messages" }), { status: 500, headers });
   }
 }
-__name(onRequestGet, "onRequestGet");
+__name(onRequestGet2, "onRequestGet2");
 var init_get_clicks_report = __esm({
   "api/get-clicks-report.js"() {
     init_functionsRoutes_0_02621743292698553();
     init_supabase();
-    __name2(onRequestGet, "onRequestGet");
+    __name2(onRequestGet2, "onRequestGet");
   }
 });
-async function onRequestGet2(context) {
+async function onRequestGet3(context) {
   const supabase = createSupabaseClient(context.env);
   const headers = {
     "Access-Control-Allow-Origin": "*",
@@ -12906,15 +12932,15 @@ async function onRequestGet2(context) {
     return new Response(JSON.stringify({ error: "Failed to fetch domains: " + error.message }), { status: 500, headers });
   }
 }
-__name(onRequestGet2, "onRequestGet2");
+__name(onRequestGet3, "onRequestGet3");
 var init_get_domains = __esm({
   "api/get-domains.js"() {
     init_functionsRoutes_0_02621743292698553();
     init_supabase();
-    __name2(onRequestGet2, "onRequestGet");
+    __name2(onRequestGet3, "onRequestGet");
   }
 });
-async function onRequestGet3(context) {
+async function onRequestGet4(context) {
   const supabase = createSupabaseClient(context.env);
   const headers = {
     "Access-Control-Allow-Origin": "*",
@@ -12949,12 +12975,12 @@ async function onRequestGet3(context) {
     return new Response(JSON.stringify({ error: "Failed to fetch messages" }), { status: 500, headers });
   }
 }
-__name(onRequestGet3, "onRequestGet3");
+__name(onRequestGet4, "onRequestGet4");
 var init_get_recent_clicks = __esm({
   "api/get-recent-clicks.js"() {
     init_functionsRoutes_0_02621743292698553();
     init_supabase();
-    __name2(onRequestGet3, "onRequestGet");
+    __name2(onRequestGet4, "onRequestGet");
   }
 });
 function generateToken(username) {
@@ -13206,6 +13232,7 @@ var init_functionsRoutes_0_02621743292698553 = __esm({
     init_change_password();
     init_change_password();
     init_delete_domain();
+    init_get_admin_password();
     init_get_clicks_report();
     init_get_domains();
     init_get_recent_clicks();
@@ -13294,25 +13321,32 @@ var init_functionsRoutes_0_02621743292698553 = __esm({
         modules: [onRequestOptions6]
       },
       {
-        routePath: "/api/get-clicks-report",
+        routePath: "/api/get-admin-password",
         mountPath: "/api",
         method: "GET",
         middlewares: [],
         modules: [onRequestGet]
       },
       {
-        routePath: "/api/get-domains",
+        routePath: "/api/get-clicks-report",
         mountPath: "/api",
         method: "GET",
         middlewares: [],
         modules: [onRequestGet2]
       },
       {
-        routePath: "/api/get-recent-clicks",
+        routePath: "/api/get-domains",
         mountPath: "/api",
         method: "GET",
         middlewares: [],
         modules: [onRequestGet3]
+      },
+      {
+        routePath: "/api/get-recent-clicks",
+        mountPath: "/api",
+        method: "GET",
+        middlewares: [],
+        modules: [onRequestGet4]
       },
       {
         routePath: "/api/login",

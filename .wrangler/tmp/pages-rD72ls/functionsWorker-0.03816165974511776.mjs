@@ -12482,8 +12482,35 @@ var init_delete_domain = __esm({
   }
 });
 
-// api/get-clicks-report.js
+// api/get-admin-password.js
 async function onRequestGet(context) {
+  const headers = {
+    "Access-Control-Allow-Origin": "*",
+    "Content-Type": "application/json"
+  };
+  try {
+    const supabase = createSupabaseClient(context.env);
+    const { data, error } = await supabase.from("settings").select("value").eq("key", "admin_password").single();
+    if (error && error.code !== "PGRST116") {
+      throw error;
+    }
+    const password = data?.value || "NGEteam2025!";
+    return new Response(JSON.stringify({ success: true, password }), { status: 200, headers });
+  } catch (error) {
+    console.error("Error fetching password:", error);
+    return new Response(JSON.stringify({ error: "Failed to fetch password" }), { status: 500, headers });
+  }
+}
+var init_get_admin_password = __esm({
+  "api/get-admin-password.js"() {
+    init_functionsRoutes_0_5582151046816();
+    init_supabase();
+    __name(onRequestGet, "onRequestGet");
+  }
+});
+
+// api/get-clicks-report.js
+async function onRequestGet2(context) {
   const supabase = createSupabaseClient(context.env);
   const headers = {
     "Access-Control-Allow-Origin": "*",
@@ -12541,12 +12568,12 @@ var init_get_clicks_report = __esm({
   "api/get-clicks-report.js"() {
     init_functionsRoutes_0_5582151046816();
     init_supabase();
-    __name(onRequestGet, "onRequestGet");
+    __name(onRequestGet2, "onRequestGet");
   }
 });
 
 // api/get-domains.js
-async function onRequestGet2(context) {
+async function onRequestGet3(context) {
   const supabase = createSupabaseClient(context.env);
   const headers = {
     "Access-Control-Allow-Origin": "*",
@@ -12566,12 +12593,12 @@ var init_get_domains = __esm({
   "api/get-domains.js"() {
     init_functionsRoutes_0_5582151046816();
     init_supabase();
-    __name(onRequestGet2, "onRequestGet");
+    __name(onRequestGet3, "onRequestGet");
   }
 });
 
 // api/get-recent-clicks.js
-async function onRequestGet3(context) {
+async function onRequestGet4(context) {
   const supabase = createSupabaseClient(context.env);
   const headers = {
     "Access-Control-Allow-Origin": "*",
@@ -12610,7 +12637,7 @@ var init_get_recent_clicks = __esm({
   "api/get-recent-clicks.js"() {
     init_functionsRoutes_0_5582151046816();
     init_supabase();
-    __name(onRequestGet3, "onRequestGet");
+    __name(onRequestGet4, "onRequestGet");
   }
 });
 
@@ -12861,6 +12888,7 @@ var init_functionsRoutes_0_5582151046816 = __esm({
     init_change_password();
     init_change_password();
     init_delete_domain();
+    init_get_admin_password();
     init_get_clicks_report();
     init_get_domains();
     init_get_recent_clicks();
@@ -12949,25 +12977,32 @@ var init_functionsRoutes_0_5582151046816 = __esm({
         modules: [onRequestOptions6]
       },
       {
-        routePath: "/api/get-clicks-report",
+        routePath: "/api/get-admin-password",
         mountPath: "/api",
         method: "GET",
         middlewares: [],
         modules: [onRequestGet]
       },
       {
-        routePath: "/api/get-domains",
+        routePath: "/api/get-clicks-report",
         mountPath: "/api",
         method: "GET",
         middlewares: [],
         modules: [onRequestGet2]
       },
       {
-        routePath: "/api/get-recent-clicks",
+        routePath: "/api/get-domains",
         mountPath: "/api",
         method: "GET",
         middlewares: [],
         modules: [onRequestGet3]
+      },
+      {
+        routePath: "/api/get-recent-clicks",
+        mountPath: "/api",
+        method: "GET",
+        middlewares: [],
+        modules: [onRequestGet4]
       },
       {
         routePath: "/api/login",
@@ -13015,10 +13050,10 @@ var init_functionsRoutes_0_5582151046816 = __esm({
   }
 });
 
-// ../.wrangler/tmp/bundle-gnhZCE/middleware-loader.entry.ts
+// ../.wrangler/tmp/bundle-8KFHF9/middleware-loader.entry.ts
 init_functionsRoutes_0_5582151046816();
 
-// ../.wrangler/tmp/bundle-gnhZCE/middleware-insertion-facade.js
+// ../.wrangler/tmp/bundle-8KFHF9/middleware-insertion-facade.js
 init_functionsRoutes_0_5582151046816();
 
 // ../node_modules/wrangler/templates/pages-template-worker.ts
@@ -13514,7 +13549,7 @@ var jsonError = /* @__PURE__ */ __name(async (request, env, _ctx, middlewareCtx)
 }, "jsonError");
 var middleware_miniflare3_json_error_default = jsonError;
 
-// ../.wrangler/tmp/bundle-gnhZCE/middleware-insertion-facade.js
+// ../.wrangler/tmp/bundle-8KFHF9/middleware-insertion-facade.js
 var __INTERNAL_WRANGLER_MIDDLEWARE__ = [
   middleware_ensure_req_body_drained_default,
   middleware_miniflare3_json_error_default
@@ -13547,7 +13582,7 @@ function __facade_invoke__(request, env, ctx, dispatch, finalMiddleware) {
 }
 __name(__facade_invoke__, "__facade_invoke__");
 
-// ../.wrangler/tmp/bundle-gnhZCE/middleware-loader.entry.ts
+// ../.wrangler/tmp/bundle-8KFHF9/middleware-loader.entry.ts
 var __Facade_ScheduledController__ = class ___Facade_ScheduledController__ {
   constructor(scheduledTime, cron, noRetry) {
     this.scheduledTime = scheduledTime;

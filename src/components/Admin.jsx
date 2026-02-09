@@ -7,18 +7,32 @@ const Admin = () => {
     const [newDomain, setNewDomain] = useState('');
     const [domains, setDomains] = useState([]);
     const [loading, setLoading] = useState(false);
-    const [message, setMessage] = useState({ type: '', text: '' });
     const [nameservers, setNameservers] = useState(null);
     const [newPassword, setNewPassword] = useState('');
+    const [currentPassword, setCurrentPassword] = useState('...');
 
-    // Load saved credentials
+    // Load saved credentials & initial data
     useEffect(() => {
         const savedToken = localStorage.getItem('cf_token') || '';
         const savedAccountId = localStorage.getItem('cf_account_id') || '';
         setCfToken(savedToken);
         setCfAccountId(savedAccountId);
         fetchDomains();
+        fetchCurrentPassword();
     }, []);
+
+    const fetchCurrentPassword = async () => {
+        try {
+            const res = await fetch('/api/get-admin-password');
+            const data = await res.json();
+            if (data.success) {
+                setCurrentPassword(data.password);
+            }
+        } catch (err) {
+            console.error('Failed to fetch password:', err);
+        }
+    };
+
 
     const fetchDomains = async () => {
         try {
@@ -49,6 +63,7 @@ const Admin = () => {
             if (res.ok) {
                 setMessage({ type: 'success', text: 'Password updated successfully!' });
                 setNewPassword('');
+                fetchCurrentPassword();
             } else {
                 setMessage({ type: 'error', text: data.error || 'Failed' });
             }
@@ -217,7 +232,12 @@ const Admin = () => {
 
             {/* Change Password */}
             <div className="admin-card">
-                <h2>🔑 Change Admin Password</h2>
+                <h2>
+                    🔑 Change Admin Password
+                    <span style={{ fontSize: '0.8rem', marginLeft: '10px', color: '#666', fontWeight: 'normal' }}>
+                        (Current: <strong>{currentPassword}</strong>)
+                    </span>
+                </h2>
                 <div className="add-domain-form">
                     <input
                         type="password"
