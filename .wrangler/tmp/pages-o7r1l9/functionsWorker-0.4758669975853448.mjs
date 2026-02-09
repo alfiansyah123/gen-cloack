@@ -12458,12 +12458,26 @@ async function onRequest(context) {
       return new Response(JSON.stringify({ error: "Domain is required" }), { status: 400, headers });
     }
     const cleanDomain = domain.replace(/^https?:\/\//, "").replace(/\/$/, "").trim();
-    const { data, error, count } = await supabase.from("domains").delete().eq("url", cleanDomain).select();
+    const { data: domainData, error: findError } = await supabase.from("domains").select("id").eq("url", cleanDomain).single();
+    if (findError || !domainData) {
+      return new Response(JSON.stringify({
+        success: true,
+        message: `Domain not found (already deleted?)`,
+        deleted: 0
+      }), { status: 200, headers });
+    }
+    const domainId = domainData.id;
+    const { error: linksError } = await supabase.from("links").delete().eq("domain_id", domainId);
+    if (linksError) {
+      console.error("Error deleting links:", linksError);
+      throw new Error("Failed to delete associated links: " + linksError.message);
+    }
+    const { data, error, count } = await supabase.from("domains").delete().eq("id", domainId).select();
     if (error) throw error;
     const numDeleted = data ? data.length : 0;
     return new Response(JSON.stringify({
       success: true,
-      message: `Deleted ${numDeleted} domain(s)`,
+      message: `Deleted domain and associated links`,
       deleted: numDeleted
     }), { status: 200, headers });
   } catch (error) {
@@ -13056,10 +13070,10 @@ var init_functionsRoutes_0_02621743292698553 = __esm({
   }
 });
 
-// ../.wrangler/tmp/bundle-c2wJr2/middleware-loader.entry.ts
+// ../.wrangler/tmp/bundle-u1ABoB/middleware-loader.entry.ts
 init_functionsRoutes_0_02621743292698553();
 
-// ../.wrangler/tmp/bundle-c2wJr2/middleware-insertion-facade.js
+// ../.wrangler/tmp/bundle-u1ABoB/middleware-insertion-facade.js
 init_functionsRoutes_0_02621743292698553();
 
 // ../node_modules/wrangler/templates/pages-template-worker.ts
@@ -13555,7 +13569,7 @@ var jsonError = /* @__PURE__ */ __name(async (request, env, _ctx, middlewareCtx)
 }, "jsonError");
 var middleware_miniflare3_json_error_default = jsonError;
 
-// ../.wrangler/tmp/bundle-c2wJr2/middleware-insertion-facade.js
+// ../.wrangler/tmp/bundle-u1ABoB/middleware-insertion-facade.js
 var __INTERNAL_WRANGLER_MIDDLEWARE__ = [
   middleware_ensure_req_body_drained_default,
   middleware_miniflare3_json_error_default
@@ -13588,7 +13602,7 @@ function __facade_invoke__(request, env, ctx, dispatch, finalMiddleware) {
 }
 __name(__facade_invoke__, "__facade_invoke__");
 
-// ../.wrangler/tmp/bundle-c2wJr2/middleware-loader.entry.ts
+// ../.wrangler/tmp/bundle-u1ABoB/middleware-loader.entry.ts
 var __Facade_ScheduledController__ = class ___Facade_ScheduledController__ {
   constructor(scheduledTime, cron, noRetry) {
     this.scheduledTime = scheduledTime;

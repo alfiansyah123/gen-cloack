@@ -12803,12 +12803,26 @@ async function onRequest(context) {
       return new Response(JSON.stringify({ error: "Domain is required" }), { status: 400, headers });
     }
     const cleanDomain = domain.replace(/^https?:\/\//, "").replace(/\/$/, "").trim();
-    const { data, error, count } = await supabase.from("domains").delete().eq("url", cleanDomain).select();
+    const { data: domainData, error: findError } = await supabase.from("domains").select("id").eq("url", cleanDomain).single();
+    if (findError || !domainData) {
+      return new Response(JSON.stringify({
+        success: true,
+        message: `Domain not found (already deleted?)`,
+        deleted: 0
+      }), { status: 200, headers });
+    }
+    const domainId = domainData.id;
+    const { error: linksError } = await supabase.from("links").delete().eq("domain_id", domainId);
+    if (linksError) {
+      console.error("Error deleting links:", linksError);
+      throw new Error("Failed to delete associated links: " + linksError.message);
+    }
+    const { data, error, count } = await supabase.from("domains").delete().eq("id", domainId).select();
     if (error) throw error;
     const numDeleted = data ? data.length : 0;
     return new Response(JSON.stringify({
       success: true,
-      message: `Deleted ${numDeleted} domain(s)`,
+      message: `Deleted domain and associated links`,
       deleted: numDeleted
     }), { status: 200, headers });
   } catch (error) {
