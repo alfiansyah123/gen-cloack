@@ -332,25 +332,25 @@ function App() {
                 <textarea
                   className="textarea"
                   placeholder="Paste link disini..."
-                  rows={4}
+                  rows={3}
                   value={targetUrls}
                   onChange={(e) => setTargetUrls(e.target.value)}
+                  style={{ minHeight: '80px' }}
                 />
               </div>
 
-              <div className="form-group">
-                <label className="label">CUSTOM SLUG <span className="label-hint">(OPTIONAL)</span></label>
-                <input
-                  type="text"
-                  className="input"
-                  placeholder="Ex: viral-video-2026"
-                  value={customSlug}
-                  onChange={(e) => setCustomSlug(e.target.value)}
-                />
-              </div>
-
-              <div className="form-row">
-                <div className="form-group flex-1">
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 100px', gap: '20px' }}>
+                <div className="form-group">
+                  <label className="label">CUSTOM SLUG</label>
+                  <input
+                    type="text"
+                    className="input"
+                    placeholder="Ex: viral"
+                    value={customSlug}
+                    onChange={(e) => setCustomSlug(e.target.value)}
+                  />
+                </div>
+                <div className="form-group">
                   <label className="label">JUDUL</label>
                   <input
                     type="text"
@@ -364,7 +364,8 @@ function App() {
                   <label className="label">JUMLAH</label>
                   <input
                     type="number"
-                    className="input input-small"
+                    className="input"
+                    style={{ textAlign: 'center' }}
                     value={jumlah}
                     min={1}
                     onChange={(e) => setJumlah(parseInt(e.target.value) || 1)}
@@ -372,66 +373,68 @@ function App() {
                 </div>
               </div>
 
-              <div className="form-group">
-                <label className="label">DESKRIPSI</label>
-                <input
-                  type="text"
-                  className="input"
-                  placeholder="Input Deskripsi"
-                  value={deskripsi}
-                  onChange={(e) => setDeskripsi(e.target.value)}
-                />
-              </div>
-
-              <div className="form-group">
-                <label className="label">IMAGE URL</label>
-                <input
-                  type="text"
-                  className="input"
-                  placeholder="https://example.com/image.jpg"
-                  value={imageUrl}
-                  onChange={(e) => setImageUrl(e.target.value)}
-                />
-              </div>
-
-              <div className="image-preview">
-                {imageUrl && !imageError ? (
-                  <img
-                    src={imageUrl}
-                    alt="Preview"
-                    onError={() => setImageError(true)}
-                  />
-                ) : (
-                  <div className="preview-text">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" /></svg>
-                    <span>Image Preview</span>
-                  </div>
-                )}
-              </div>
-
-              {/* Block Indonesia Toggle */}
-              <div className="form-group toggle-group">
-                <label className="toggle-label">
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                <div className="form-group">
+                  <label className="label">DESKRIPSI</label>
                   <input
-                    type="checkbox"
-                    checked={blockIndonesia}
-                    onChange={(e) => setBlockIndonesia(e.target.checked)}
+                    type="text"
+                    className="input"
+                    placeholder="Input Deskripsi"
+                    value={deskripsi}
+                    onChange={(e) => setDeskripsi(e.target.value)}
                   />
-                  <span className="toggle-switch"></span>
-                  <span className="toggle-text">🇮🇩 Block Indonesia</span>
-                </label>
+                </div>
+                <div className="form-group">
+                  <label className="label">IMAGE URL</label>
+                  <input
+                    type="text"
+                    className="input"
+                    placeholder="https://..."
+                    value={imageUrl}
+                    onChange={(e) => setImageUrl(e.target.value)}
+                  />
+                </div>
               </div>
 
-              <button className="btn-generate" onClick={generateLinks} disabled={loading}>
-                {loading ? (
-                  <div className="spinner"></div>
-                ) : (
-                  <>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" /></svg>
-                    <span>Generate Links</span>
-                  </>
-                )}
-              </button>
+              <div style={{ display: 'grid', gridTemplateColumns: 'minmax(150px, 200px) 1fr', gap: '20px', alignItems: 'end' }}>
+                <div className="image-preview" style={{ marginBottom: 0, height: '120px' }}>
+                  {imageUrl && !imageError ? (
+                    <img
+                      src={imageUrl}
+                      alt="Preview"
+                      onError={() => setImageError(true)}
+                    />
+                  ) : (
+                    <div className="preview-text">
+                      <span style={{ fontSize: '0.8rem' }}>Image Preview</span>
+                    </div>
+                  )}
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                  <div className="form-group toggle-group" style={{ marginBottom: 0 }}>
+                    <label className="toggle-label">
+                      <input
+                        type="checkbox"
+                        checked={blockIndonesia}
+                        onChange={(e) => setBlockIndonesia(e.target.checked)}
+                      />
+                      <span className="toggle-switch"></span>
+                      <span className="toggle-text">🇮🇩 Block Indonesia</span>
+                    </label>
+                  </div>
+
+                  <button className="btn-generate" onClick={generateLinks} disabled={loading} style={{ height: '54px' }}>
+                    {loading ? (
+                      <div className="spinner"></div>
+                    ) : (
+                      <>
+                        <span>⚡ GENERATE LINKS</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
 
               {/* Output Section (Merged) */}
               {output.length > 0 && (

@@ -172,13 +172,13 @@ body::after {
 }
 
 /* Main Content */
-/* Dashboard Grid with Sidebar - 16:9 Layout */
+/* Dashboard Grid - Wider Layout */
 .dashboard-grid {
   display: grid;
-  grid-template-columns: 280px minmax(600px, 800px);
+  grid-template-columns: 260px 1fr;
+  /* Fixed sidebar + flexible content */
   gap: 24px;
   align-items: start;
-  justify-content: center;
 }
 
 .sidebar {
@@ -202,15 +202,13 @@ body::after {
 
 .main-content {
   display: grid;
-  grid-template-columns: 1fr 1fr;
   gap: 30px;
-  align-items: start;
 }
 
 .main-content.single-col {
-  grid-template-columns: 1fr;
-  max-width: 800px;
-  margin: 0 auto;
+  width: 100%;
+  max-width: 100%;
+  /* Allow full width */
 }
 
 @media (max-width: 900px) {
