@@ -21,14 +21,25 @@ export async function onRequest(context) {
             return new Response(JSON.stringify({ error: 'Domain is required' }), { status: 400, headers });
         }
 
-        const { error } = await supabase
+        // Clean URL just like in add-domain (remove protocol, trailing slash)
+        const cleanDomain = domain.replace(/^https?:\/\//, '').replace(/\/$/, '').trim();
+
+        const { data, error, count } = await supabase
             .from('domains')
             .delete()
-            .eq('url', domain);
+            .eq('url', cleanDomain)
+            .select();
 
         if (error) throw error;
 
-        return new Response(JSON.stringify({ success: true, message: 'Domain deleted from database' }), { status: 200, headers });
+        // If data is empty, it means nothing was deleted
+        const numDeleted = data ? data.length : 0;
+
+        return new Response(JSON.stringify({
+            success: true,
+            message: `Deleted ${numDeleted} domain(s)`,
+            deleted: numDeleted
+        }), { status: 200, headers });
 
     } catch (error) {
         return new Response(JSON.stringify({ error: error.message }), { status: 500, headers });

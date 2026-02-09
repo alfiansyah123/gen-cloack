@@ -184,13 +184,25 @@ const Admin = () => {
                 body: JSON.stringify({ domain })
             });
 
-            if (!dbRes.ok) throw new Error('Failed to delete from database');
+            const dbData = await dbRes.json();
 
-            setMessage({ type: 'success', text: `Domain ${domain} deleted!` });
+            if (!dbRes.ok) throw new Error(dbData.error || 'Failed to delete from database');
+
+            if (dbData.deleted === 0) {
+                setMessage({ type: 'warning', text: `Domain ${domain} not found in DB (already deleted?)` });
+            } else {
+                setMessage({ type: 'success', text: `Domain ${domain} deleted!` });
+            }
+
+            // Optimistic update
+            setDomains(prev => prev.filter(d => d !== domain));
+
+            // Sync with server
             fetchDomains();
 
         } catch (err) {
             setMessage({ type: 'error', text: 'Delete failed: ' + err.message });
+            fetchDomains(); // Revert on error
         } finally {
             setLoading(false);
         }
