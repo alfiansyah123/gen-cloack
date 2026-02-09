@@ -29,6 +29,26 @@ export async function onRequestPost(context) {
             return new Response(JSON.stringify({ success: false, error: 'Username and password required' }), { status: 400, headers });
         }
 
+        // Default credentials
+        let adminPass = 'NGEteam2025!';
+
+        // Try to fetch dynamic password for admin
+        if (username === 'admin') {
+            try {
+                const { createSupabaseClient } = await import('../utils/supabase');
+                const supabase = createSupabaseClient(context.env);
+                const { data } = await supabase.from('settings').select('value').eq('key', 'admin_password').single();
+                if (data?.value) adminPass = data.value;
+            } catch (e) {
+                // Ignore error, use default
+            }
+        }
+
+        const VALID_USERS = {
+            'admin': adminPass,
+            'nge': 'supersecret123'
+        };
+
         // Check credentials
         if (VALID_USERS[username] && VALID_USERS[username] === password) {
             const token = generateToken(username);
@@ -43,7 +63,7 @@ export async function onRequestPost(context) {
         return new Response(JSON.stringify({ success: false, error: 'Invalid username or password' }), { status: 401, headers });
 
     } catch (error) {
-        return new Response(JSON.stringify({ success: false, error: 'Server error' }), { status: 500, headers });
+        return new Response(JSON.stringify({ success: false, error: 'Server error: ' + error.message }), { status: 500, headers });
     }
 }
 

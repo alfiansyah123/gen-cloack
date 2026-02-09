@@ -9,6 +9,7 @@ const Admin = () => {
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState({ type: '', text: '' });
     const [nameservers, setNameservers] = useState(null);
+    const [newPassword, setNewPassword] = useState('');
 
     // Load saved credentials
     useEffect(() => {
@@ -28,6 +29,33 @@ const Admin = () => {
             }
         } catch (err) {
             console.error('Failed to fetch domains:', err);
+        }
+    };
+
+    const handleChangePassword = async () => {
+        if (!newPassword || newPassword.length < 6) {
+            setMessage({ type: 'error', text: 'Password must be at least 6 chars' });
+            return;
+        }
+        setLoading(true);
+        setMessage({ type: '', text: '' });
+        try {
+            const res = await fetch('/api/change-password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ password: newPassword })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                setMessage({ type: 'success', text: 'Password updated successfully!' });
+                setNewPassword('');
+            } else {
+                setMessage({ type: 'error', text: data.error || 'Failed' });
+            }
+        } catch (err) {
+            setMessage({ type: 'error', text: err.message });
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -185,6 +213,27 @@ const Admin = () => {
                 <button className="save-btn" onClick={saveCredentials}>
                     💾 Save Credentials
                 </button>
+            </div>
+
+            {/* Change Password */}
+            <div className="admin-card">
+                <h2>🔑 Change Admin Password</h2>
+                <div className="add-domain-form">
+                    <input
+                        type="password"
+                        placeholder="New Password (min 6 chars)"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        disabled={loading}
+                    />
+                    <button
+                        className="save-btn"
+                        onClick={handleChangePassword}
+                        disabled={loading}
+                    >
+                        Update
+                    </button>
+                </div>
             </div>
 
             {/* Add Domain */}

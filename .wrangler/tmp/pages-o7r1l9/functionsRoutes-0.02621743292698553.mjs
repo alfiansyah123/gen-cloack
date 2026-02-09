@@ -6,6 +6,8 @@ import { onRequestOptions as __api_cloudflare_setup_dns_js_onRequestOptions } fr
 import { onRequestPost as __api_cloudflare_setup_dns_js_onRequestPost } from "C:\\project\\Link Generator\\functions\\api\\cloudflare\\setup-dns.js"
 import { onRequestOptions as __api_add_domain_js_onRequestOptions } from "C:\\project\\Link Generator\\functions\\api\\add-domain.js"
 import { onRequestPost as __api_add_domain_js_onRequestPost } from "C:\\project\\Link Generator\\functions\\api\\add-domain.js"
+import { onRequestOptions as __api_change_password_js_onRequestOptions } from "C:\\project\\Link Generator\\functions\\api\\change-password.js"
+import { onRequestPost as __api_change_password_js_onRequestPost } from "C:\\project\\Link Generator\\functions\\api\\change-password.js"
 import { onRequestOptions as __api_delete_domain_js_onRequestOptions } from "C:\\project\\Link Generator\\functions\\api\\delete-domain.js"
 import { onRequestGet as __api_get_clicks_report_js_onRequestGet } from "C:\\project\\Link Generator\\functions\\api\\get-clicks-report.js"
 import { onRequestGet as __api_get_domains_js_onRequestGet } from "C:\\project\\Link Generator\\functions\\api\\get-domains.js"
@@ -73,6 +75,20 @@ export const routes = [
       method: "POST",
       middlewares: [],
       modules: [__api_add_domain_js_onRequestPost],
+    },
+  {
+      routePath: "/api/change-password",
+      mountPath: "/api",
+      method: "OPTIONS",
+      middlewares: [],
+      modules: [__api_change_password_js_onRequestOptions],
+    },
+  {
+      routePath: "/api/change-password",
+      mountPath: "/api",
+      method: "POST",
+      middlewares: [],
+      modules: [__api_change_password_js_onRequestPost],
     },
   {
       routePath: "/api/delete-domain",
