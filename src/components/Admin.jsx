@@ -7,6 +7,7 @@ const Admin = () => {
     const [newDomain, setNewDomain] = useState('');
     const [domains, setDomains] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [message, setMessage] = useState({ type: '', text: '' });
     const [nameservers, setNameservers] = useState(null);
     const [newPassword, setNewPassword] = useState('');
     const [currentPassword, setCurrentPassword] = useState('...');
