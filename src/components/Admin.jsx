@@ -115,6 +115,43 @@ const Admin = () => {
         }
     };
 
+    const handleDeleteDomain = async (domain) => {
+        if (!confirm(`Are you sure you want to delete ${domain}? This will remove it from database AND Cloudflare.`)) {
+            return;
+        }
+
+        setLoading(true);
+        setMessage({ type: '', text: '' });
+
+        try {
+            // 1. Delete from Cloudflare (if credentials exist)
+            if (cfToken && cfAccountId) {
+                await fetch('/api/cloudflare/delete-zone', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ domain, cfToken, cfAccountId })
+                });
+            }
+
+            // 2. Delete from Database
+            const dbRes = await fetch('/api/delete-domain', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ domain })
+            });
+
+            if (!dbRes.ok) throw new Error('Failed to delete from database');
+
+            setMessage({ type: 'success', text: `Domain ${domain} deleted!` });
+            fetchDomains();
+
+        } catch (err) {
+            setMessage({ type: 'error', text: 'Delete failed: ' + err.message });
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <div className="admin-container">
             <div className="admin-header">
@@ -199,6 +236,14 @@ const Admin = () => {
                         {domains.map((domain, index) => (
                             <li key={index}>
                                 <span className="domain-url">{domain}</span>
+                                <button
+                                    className="delete-btn"
+                                    onClick={() => handleDeleteDomain(domain)}
+                                    disabled={loading}
+                                    title="Delete from DB & Cloudflare"
+                                >
+                                    🗑️
+                                </button>
                             </li>
                         ))}
                     </ul>

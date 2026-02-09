@@ -1,9 +1,12 @@
 import { onRequestOptions as __api_cloudflare_add_zone_js_onRequestOptions } from "C:\\project\\Link Generator\\functions\\api\\cloudflare\\add-zone.js"
 import { onRequestPost as __api_cloudflare_add_zone_js_onRequestPost } from "C:\\project\\Link Generator\\functions\\api\\cloudflare\\add-zone.js"
+import { onRequestOptions as __api_cloudflare_delete_zone_js_onRequestOptions } from "C:\\project\\Link Generator\\functions\\api\\cloudflare\\delete-zone.js"
+import { onRequestPost as __api_cloudflare_delete_zone_js_onRequestPost } from "C:\\project\\Link Generator\\functions\\api\\cloudflare\\delete-zone.js"
 import { onRequestOptions as __api_cloudflare_setup_dns_js_onRequestOptions } from "C:\\project\\Link Generator\\functions\\api\\cloudflare\\setup-dns.js"
 import { onRequestPost as __api_cloudflare_setup_dns_js_onRequestPost } from "C:\\project\\Link Generator\\functions\\api\\cloudflare\\setup-dns.js"
 import { onRequestOptions as __api_add_domain_js_onRequestOptions } from "C:\\project\\Link Generator\\functions\\api\\add-domain.js"
 import { onRequestPost as __api_add_domain_js_onRequestPost } from "C:\\project\\Link Generator\\functions\\api\\add-domain.js"
+import { onRequestOptions as __api_delete_domain_js_onRequestOptions } from "C:\\project\\Link Generator\\functions\\api\\delete-domain.js"
 import { onRequestGet as __api_get_clicks_report_js_onRequestGet } from "C:\\project\\Link Generator\\functions\\api\\get-clicks-report.js"
 import { onRequestGet as __api_get_domains_js_onRequestGet } from "C:\\project\\Link Generator\\functions\\api\\get-domains.js"
 import { onRequestGet as __api_get_recent_clicks_js_onRequestGet } from "C:\\project\\Link Generator\\functions\\api\\get-recent-clicks.js"
@@ -11,6 +14,7 @@ import { onRequestOptions as __api_login_js_onRequestOptions } from "C:\\project
 import { onRequestPost as __api_login_js_onRequestPost } from "C:\\project\\Link Generator\\functions\\api\\login.js"
 import { onRequestOptions as __api_save_link_js_onRequestOptions } from "C:\\project\\Link Generator\\functions\\api\\save-link.js"
 import { onRequestPost as __api_save_link_js_onRequestPost } from "C:\\project\\Link Generator\\functions\\api\\save-link.js"
+import { onRequest as __api_delete_domain_js_onRequest } from "C:\\project\\Link Generator\\functions\\api\\delete-domain.js"
 import { onRequest as ____path___js_onRequest } from "C:\\project\\Link Generator\\functions\\[[path]].js"
 
 export const routes = [
@@ -27,6 +31,20 @@ export const routes = [
       method: "POST",
       middlewares: [],
       modules: [__api_cloudflare_add_zone_js_onRequestPost],
+    },
+  {
+      routePath: "/api/cloudflare/delete-zone",
+      mountPath: "/api/cloudflare",
+      method: "OPTIONS",
+      middlewares: [],
+      modules: [__api_cloudflare_delete_zone_js_onRequestOptions],
+    },
+  {
+      routePath: "/api/cloudflare/delete-zone",
+      mountPath: "/api/cloudflare",
+      method: "POST",
+      middlewares: [],
+      modules: [__api_cloudflare_delete_zone_js_onRequestPost],
     },
   {
       routePath: "/api/cloudflare/setup-dns",
@@ -55,6 +73,13 @@ export const routes = [
       method: "POST",
       middlewares: [],
       modules: [__api_add_domain_js_onRequestPost],
+    },
+  {
+      routePath: "/api/delete-domain",
+      mountPath: "/api",
+      method: "OPTIONS",
+      middlewares: [],
+      modules: [__api_delete_domain_js_onRequestOptions],
     },
   {
       routePath: "/api/get-clicks-report",
@@ -104,6 +129,13 @@ export const routes = [
       method: "POST",
       middlewares: [],
       modules: [__api_save_link_js_onRequestPost],
+    },
+  {
+      routePath: "/api/delete-domain",
+      mountPath: "/api",
+      method: "",
+      middlewares: [],
+      modules: [__api_delete_domain_js_onRequest],
     },
   {
       routePath: "/:path*",

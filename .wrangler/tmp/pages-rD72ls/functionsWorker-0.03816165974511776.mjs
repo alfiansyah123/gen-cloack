@@ -85,8 +85,78 @@ async function onRequestOptions() {
 }
 __name(onRequestOptions, "onRequestOptions");
 
-// api/cloudflare/setup-dns.js
+// api/cloudflare/delete-zone.js
 async function onRequestPost2(context) {
+  const headers = {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Headers": "Content-Type",
+    "Content-Type": "application/json"
+  };
+  try {
+    const { domain, cfToken, cfAccountId } = await context.request.json();
+    if (!domain || !cfToken || !cfAccountId) {
+      return new Response(JSON.stringify({
+        error: "Missing required fields: domain, cfToken, cfAccountId"
+      }), { status: 400, headers });
+    }
+    const listResponse = await fetch(
+      `https://api.cloudflare.com/client/v4/zones?name=${domain}&account.id=${cfAccountId}`,
+      {
+        headers: {
+          "Authorization": `Bearer ${cfToken}`,
+          "Content-Type": "application/json"
+        }
+      }
+    );
+    const listData = await listResponse.json();
+    if (!listData.success || listData.result.length === 0) {
+      return new Response(JSON.stringify({
+        success: true,
+        message: "Zone not found in Cloudflare (might be already deleted)"
+      }), { status: 200, headers });
+    }
+    const zoneId = listData.result[0].id;
+    const deleteResponse = await fetch(
+      `https://api.cloudflare.com/client/v4/zones/${zoneId}`,
+      {
+        method: "DELETE",
+        headers: {
+          "Authorization": `Bearer ${cfToken}`,
+          "Content-Type": "application/json"
+        }
+      }
+    );
+    const deleteData = await deleteResponse.json();
+    if (!deleteData.success) {
+      return new Response(JSON.stringify({
+        error: deleteData.errors?.[0]?.message || "Failed to delete zone"
+      }), { status: 400, headers });
+    }
+    return new Response(JSON.stringify({
+      success: true,
+      id: deleteData.result.id,
+      message: "Zone deleted from Cloudflare"
+    }), { status: 200, headers });
+  } catch (err) {
+    return new Response(JSON.stringify({
+      error: err.message
+    }), { status: 500, headers });
+  }
+}
+__name(onRequestPost2, "onRequestPost");
+async function onRequestOptions2() {
+  return new Response(null, {
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "POST, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type"
+    }
+  });
+}
+__name(onRequestOptions2, "onRequestOptions");
+
+// api/cloudflare/setup-dns.js
+async function onRequestPost3(context) {
   const headers = {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Headers": "Content-Type",
@@ -177,8 +247,8 @@ async function onRequestPost2(context) {
     }), { status: 500, headers });
   }
 }
-__name(onRequestPost2, "onRequestPost");
-async function onRequestOptions2() {
+__name(onRequestPost3, "onRequestPost");
+async function onRequestOptions3() {
   return new Response(null, {
     headers: {
       "Access-Control-Allow-Origin": "*",
@@ -187,7 +257,7 @@ async function onRequestOptions2() {
     }
   });
 }
-__name(onRequestOptions2, "onRequestOptions");
+__name(onRequestOptions3, "onRequestOptions");
 
 // ../node_modules/tslib/tslib.es6.mjs
 function __rest(s, e) {
@@ -11967,7 +12037,7 @@ var createSupabaseClient = /* @__PURE__ */ __name((env) => {
 }, "createSupabaseClient");
 
 // api/add-domain.js
-async function onRequestPost3(context) {
+async function onRequestPost4(context) {
   const supabase = createSupabaseClient(context.env);
   const headers = {
     "Access-Control-Allow-Origin": "*",
@@ -11993,8 +12063,8 @@ async function onRequestPost3(context) {
     return new Response(JSON.stringify({ success: false, error: error.message }), { status: 500, headers });
   }
 }
-__name(onRequestPost3, "onRequestPost");
-async function onRequestOptions3() {
+__name(onRequestPost4, "onRequestPost");
+async function onRequestOptions4() {
   return new Response(null, {
     headers: {
       "Access-Control-Allow-Origin": "*",
@@ -12003,7 +12073,42 @@ async function onRequestOptions3() {
     }
   });
 }
-__name(onRequestOptions3, "onRequestOptions");
+__name(onRequestOptions4, "onRequestOptions");
+
+// api/delete-domain.js
+async function onRequest(context) {
+  if (context.request.method !== "DELETE" && context.request.method !== "POST") {
+    return new Response("Method Not Allowed", { status: 405 });
+  }
+  const headers = {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Headers": "Content-Type",
+    "Content-Type": "application/json"
+  };
+  try {
+    const supabase = createSupabaseClient(context.env);
+    const { domain } = await context.request.json();
+    if (!domain) {
+      return new Response(JSON.stringify({ error: "Domain is required" }), { status: 400, headers });
+    }
+    const { error } = await supabase.from("domains").delete().eq("url", domain);
+    if (error) throw error;
+    return new Response(JSON.stringify({ success: true, message: "Domain deleted from database" }), { status: 200, headers });
+  } catch (error) {
+    return new Response(JSON.stringify({ error: error.message }), { status: 500, headers });
+  }
+}
+__name(onRequest, "onRequest");
+async function onRequestOptions5() {
+  return new Response(null, {
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "DELETE, POST, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type"
+    }
+  });
+}
+__name(onRequestOptions5, "onRequestOptions");
 
 // api/get-clicks-report.js
 async function onRequestGet(context) {
@@ -12130,7 +12235,7 @@ function generateToken(username) {
   return btoa(`${username}:${timestamp}:${random}`);
 }
 __name(generateToken, "generateToken");
-async function onRequestPost4(context) {
+async function onRequestPost5(context) {
   const headers = {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Headers": "Content-Type",
@@ -12154,8 +12259,8 @@ async function onRequestPost4(context) {
     return new Response(JSON.stringify({ success: false, error: "Server error" }), { status: 500, headers });
   }
 }
-__name(onRequestPost4, "onRequestPost");
-async function onRequestOptions4() {
+__name(onRequestPost5, "onRequestPost");
+async function onRequestOptions6() {
   return new Response(null, {
     headers: {
       "Access-Control-Allow-Origin": "*",
@@ -12164,10 +12269,10 @@ async function onRequestOptions4() {
     }
   });
 }
-__name(onRequestOptions4, "onRequestOptions");
+__name(onRequestOptions6, "onRequestOptions");
 
 // api/save-link.js
-async function onRequestPost5(context) {
+async function onRequestPost6(context) {
   const supabase = createSupabaseClient(context.env);
   const headers = {
     "Access-Control-Allow-Origin": "*",
@@ -12205,8 +12310,8 @@ async function onRequestPost5(context) {
     return new Response(JSON.stringify({ error: "Internal Server Error" }), { status: 500, headers });
   }
 }
-__name(onRequestPost5, "onRequestPost");
-async function onRequestOptions5() {
+__name(onRequestPost6, "onRequestPost");
+async function onRequestOptions7() {
   return new Response(null, {
     headers: {
       "Access-Control-Allow-Origin": "*",
@@ -12215,7 +12320,7 @@ async function onRequestOptions5() {
     }
   });
 }
-__name(onRequestOptions5, "onRequestOptions");
+__name(onRequestOptions7, "onRequestOptions");
 
 // [[path]].js
 function isBot(userAgent) {
@@ -12287,7 +12392,7 @@ async function recordClick(supabase, link, request) {
   }
 }
 __name(recordClick, "recordClick");
-async function onRequest(context) {
+async function onRequest2(context) {
   const url = new URL(context.request.url);
   const path = url.pathname.replace(/^\/+|\/+$/g, "");
   if (path.startsWith("api/") || path.startsWith("assets/") || path === "" || path.includes(".")) {
@@ -12322,7 +12427,7 @@ async function onRequest(context) {
   }
   return Response.redirect(target, 302);
 }
-__name(onRequest, "onRequest");
+__name(onRequest2, "onRequest");
 
 // ../.wrangler/tmp/pages-rD72ls/functionsRoutes-0.5582151046816.mjs
 var routes = [
@@ -12341,32 +12446,53 @@ var routes = [
     modules: [onRequestPost]
   },
   {
-    routePath: "/api/cloudflare/setup-dns",
+    routePath: "/api/cloudflare/delete-zone",
     mountPath: "/api/cloudflare",
     method: "OPTIONS",
     middlewares: [],
     modules: [onRequestOptions2]
   },
   {
-    routePath: "/api/cloudflare/setup-dns",
+    routePath: "/api/cloudflare/delete-zone",
     mountPath: "/api/cloudflare",
     method: "POST",
     middlewares: [],
     modules: [onRequestPost2]
   },
   {
+    routePath: "/api/cloudflare/setup-dns",
+    mountPath: "/api/cloudflare",
+    method: "OPTIONS",
+    middlewares: [],
+    modules: [onRequestOptions3]
+  },
+  {
+    routePath: "/api/cloudflare/setup-dns",
+    mountPath: "/api/cloudflare",
+    method: "POST",
+    middlewares: [],
+    modules: [onRequestPost3]
+  },
+  {
     routePath: "/api/add-domain",
     mountPath: "/api",
     method: "OPTIONS",
     middlewares: [],
-    modules: [onRequestOptions3]
+    modules: [onRequestOptions4]
   },
   {
     routePath: "/api/add-domain",
     mountPath: "/api",
     method: "POST",
     middlewares: [],
-    modules: [onRequestPost3]
+    modules: [onRequestPost4]
+  },
+  {
+    routePath: "/api/delete-domain",
+    mountPath: "/api",
+    method: "OPTIONS",
+    middlewares: [],
+    modules: [onRequestOptions5]
   },
   {
     routePath: "/api/get-clicks-report",
@@ -12394,35 +12520,42 @@ var routes = [
     mountPath: "/api",
     method: "OPTIONS",
     middlewares: [],
-    modules: [onRequestOptions4]
+    modules: [onRequestOptions6]
   },
   {
     routePath: "/api/login",
     mountPath: "/api",
     method: "POST",
     middlewares: [],
-    modules: [onRequestPost4]
+    modules: [onRequestPost5]
   },
   {
     routePath: "/api/save-link",
     mountPath: "/api",
     method: "OPTIONS",
     middlewares: [],
-    modules: [onRequestOptions5]
+    modules: [onRequestOptions7]
   },
   {
     routePath: "/api/save-link",
     mountPath: "/api",
     method: "POST",
     middlewares: [],
-    modules: [onRequestPost5]
+    modules: [onRequestPost6]
+  },
+  {
+    routePath: "/api/delete-domain",
+    mountPath: "/api",
+    method: "",
+    middlewares: [],
+    modules: [onRequest]
   },
   {
     routePath: "/:path*",
     mountPath: "/",
     method: "",
     middlewares: [],
-    modules: [onRequest]
+    modules: [onRequest2]
   }
 ];
 
@@ -12913,7 +13046,7 @@ var jsonError = /* @__PURE__ */ __name(async (request, env, _ctx, middlewareCtx)
 }, "jsonError");
 var middleware_miniflare3_json_error_default = jsonError;
 
-// ../.wrangler/tmp/bundle-VknhgH/middleware-insertion-facade.js
+// ../.wrangler/tmp/bundle-XLjHtq/middleware-insertion-facade.js
 var __INTERNAL_WRANGLER_MIDDLEWARE__ = [
   middleware_ensure_req_body_drained_default,
   middleware_miniflare3_json_error_default
@@ -12945,7 +13078,7 @@ function __facade_invoke__(request, env, ctx, dispatch, finalMiddleware) {
 }
 __name(__facade_invoke__, "__facade_invoke__");
 
-// ../.wrangler/tmp/bundle-VknhgH/middleware-loader.entry.ts
+// ../.wrangler/tmp/bundle-XLjHtq/middleware-loader.entry.ts
 var __Facade_ScheduledController__ = class ___Facade_ScheduledController__ {
   constructor(scheduledTime, cron, noRetry) {
     this.scheduledTime = scheduledTime;
