@@ -196,9 +196,9 @@ const Admin = () => {
                     <p className="empty">No domains yet</p>
                 ) : (
                     <ul className="domain-list">
-                        {domains.map((d) => (
-                            <li key={d.id}>
-                                <span className="domain-url">{d.url}</span>
+                        {domains.map((domain, index) => (
+                            <li key={index}>
+                                <span className="domain-url">{domain}</span>
                             </li>
                         ))}
                     </ul>
