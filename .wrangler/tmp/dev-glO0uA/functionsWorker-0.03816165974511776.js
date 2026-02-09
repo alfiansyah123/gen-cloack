@@ -12717,8 +12717,13 @@ async function onRequestPost4(context) {
       return new Response(JSON.stringify({ error: "Domain URL is required" }), { status: 400, headers });
     }
     url = url.replace(/^https?:\/\//, "").replace(/\/$/, "");
-    const { data: existing, error: checkError } = await supabase.from("domains").select("id").eq("url", url);
+    const { data: existing, error: checkError } = await supabase.from("domains").select("id, active").eq("url", url);
     if (existing && existing.length > 0) {
+      if (!existing[0].active) {
+        const { error: activateError } = await supabase.from("domains").update({ active: true }).eq("id", existing[0].id);
+        if (activateError) throw activateError;
+        return new Response(JSON.stringify({ success: true, message: "Domain reactivated", domain: url }), { status: 200, headers });
+      }
       return new Response(JSON.stringify({ success: true, message: "Domain already exists", domain: url }), { status: 200, headers });
     }
     const { error: insertError } = await supabase.from("domains").insert({ url, active: true });
@@ -12803,27 +12808,20 @@ async function onRequest(context) {
       return new Response(JSON.stringify({ error: "Domain is required" }), { status: 400, headers });
     }
     const cleanDomain = domain.replace(/^https?:\/\//, "").replace(/\/$/, "").trim();
-    const { data: domainData, error: findError } = await supabase.from("domains").select("id").eq("url", cleanDomain).single();
-    if (findError || !domainData) {
+    const { data, error } = await supabase.from("domains").update({ active: false }).eq("url", cleanDomain).select();
+    if (error) throw error;
+    const numUpdated = data ? data.length : 0;
+    if (numUpdated === 0) {
       return new Response(JSON.stringify({
         success: true,
         message: `Domain not found (already deleted?)`,
         deleted: 0
       }), { status: 200, headers });
     }
-    const domainId = domainData.id;
-    const { error: linksError } = await supabase.from("links").delete().eq("domain_id", domainId);
-    if (linksError) {
-      console.error("Error deleting links:", linksError);
-      throw new Error("Failed to delete associated links: " + linksError.message);
-    }
-    const { data, error, count } = await supabase.from("domains").delete().eq("id", domainId).select();
-    if (error) throw error;
-    const numDeleted = data ? data.length : 0;
     return new Response(JSON.stringify({
       success: true,
-      message: `Deleted domain and associated links`,
-      deleted: numDeleted
+      message: `Domain deactivated (Soft Delete)`,
+      deleted: numUpdated
     }), { status: 200, headers });
   } catch (error) {
     return new Response(JSON.stringify({ error: error.message }), { status: 500, headers });

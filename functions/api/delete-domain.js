@@ -1,6 +1,6 @@
 import { createSupabaseClient } from '../utils/supabase';
 
-// Delete domain from database (and associated links)
+// Soft Delete domain (Hide from UI, keep in DB)
 export async function onRequest(context) {
     // Handle DELETE method (or POST with action)
     if (context.request.method !== 'DELETE' && context.request.method !== 'POST') {
@@ -21,19 +21,22 @@ export async function onRequest(context) {
             return new Response(JSON.stringify({ error: 'Domain is required' }), { status: 400, headers });
         }
 
-        // Clean URL just like in add-domain (remove protocol, trailing slash)
+        // Clean URL
         const cleanDomain = domain.replace(/^https?:\/\//, '').replace(/\/$/, '').trim();
 
-        // 1. Get Domain ID first
-        const { data: domainData, error: findError } = await supabase
+        // Perform Soft Delete (Set active = false)
+        const { data, error } = await supabase
             .from('domains')
-            .select('id')
+            .update({ active: false })
             .eq('url', cleanDomain)
-            .single();
+            .select();
 
-        if (findError || !domainData) {
-            // Already gone or not found. 
-            // Return success so UI can update (assuming it's already deleted)
+        if (error) throw error;
+
+        // Check if anything was updated
+        const numUpdated = data ? data.length : 0;
+
+        if (numUpdated === 0) {
             return new Response(JSON.stringify({
                 success: true,
                 message: `Domain not found (already deleted?)`,
@@ -41,35 +44,10 @@ export async function onRequest(context) {
             }), { status: 200, headers });
         }
 
-        const domainId = domainData.id;
-
-        // 2. Delete Dependent Links (Manual Cascade)
-        // We must delete links referencing this domain_id first to satisfy FK constraint
-        const { error: linksError } = await supabase
-            .from('links')
-            .delete()
-            .eq('domain_id', domainId);
-
-        if (linksError) {
-            console.error('Error deleting links:', linksError);
-            throw new Error('Failed to delete associated links: ' + linksError.message);
-        }
-
-        // 3. Delete Domain
-        const { data, error, count } = await supabase
-            .from('domains')
-            .delete()
-            .eq('id', domainId)
-            .select();
-
-        if (error) throw error;
-
-        const numDeleted = data ? data.length : 0;
-
         return new Response(JSON.stringify({
             success: true,
-            message: `Deleted domain and associated links`,
-            deleted: numDeleted
+            message: `Domain deactivated (Soft Delete)`,
+            deleted: numUpdated
         }), { status: 200, headers });
 
     } catch (error) {

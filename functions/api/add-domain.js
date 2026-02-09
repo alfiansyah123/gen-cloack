@@ -19,13 +19,25 @@ export async function onRequestPost(context) {
         // Clean URL
         url = url.replace(/^https?:\/\//, '').replace(/\/$/, '');
 
-        // Check if exists
+        // Check if exists (including inactive)
         const { data: existing, error: checkError } = await supabase
             .from('domains')
-            .select('id')
-            .eq('url', url); // .single() might fail if not found and we don't catch, better check list length
+            .select('id, active')
+            .eq('url', url);
 
         if (existing && existing.length > 0) {
+            // If exists but inactive, reactivate it
+            if (!existing[0].active) {
+                const { error: activateError } = await supabase
+                    .from('domains')
+                    .update({ active: true })
+                    .eq('id', existing[0].id);
+
+                if (activateError) throw activateError;
+
+                return new Response(JSON.stringify({ success: true, message: 'Domain reactivated', domain: url }), { status: 200, headers });
+            }
+
             return new Response(JSON.stringify({ success: true, message: 'Domain already exists', domain: url }), { status: 200, headers });
         }
 
