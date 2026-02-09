@@ -13167,8 +13167,14 @@ async function recordClick(supabase, link, request) {
   const userAgent = request.headers.get("user-agent") || "";
   if (isBot(userAgent)) return;
   const requestUrl = new URL(request.url);
-  const clickId = requestUrl.searchParams.get("click_id") || requestUrl.searchParams.get("clickid") || requestUrl.searchParams.get("subid") || requestUrl.searchParams.get("gclid") || // Google Ads
-  requestUrl.searchParams.get("fbclid");
+  let clickId = requestUrl.searchParams.get("click_id") || requestUrl.searchParams.get("clickid") || requestUrl.searchParams.get("subid") || requestUrl.searchParams.get("gclid") || requestUrl.searchParams.get("fbclid");
+  if (!clickId && link.original_url) {
+    try {
+      const targetUrl = new URL(link.original_url);
+      clickId = targetUrl.searchParams.get("click_id") || targetUrl.searchParams.get("clickid") || targetUrl.searchParams.get("subid");
+    } catch (e) {
+    }
+  }
   if (!clickId) {
     return;
   }
@@ -13218,7 +13224,8 @@ async function onRequest2(context) {
   let target = link.original_url;
   if (url.search) {
     const targetUrl = new URL(target);
-    url.searchParams.forEach((value, key) => {
+    const requestParams = new URL(context.request.url).searchParams;
+    requestParams.forEach((value, key) => {
       targetUrl.searchParams.append(key, value);
     });
     target = targetUrl.toString();

@@ -33,17 +33,26 @@ async function recordClick(supabase, link, request) {
     // Skip bot tracking
     if (isBot(userAgent)) return;
 
-    // Extract click_id from Request URL (Dynamic)
+    // 1. Extract click_id from Request URL (Dynamic - Priority)
     const requestUrl = new URL(request.url);
-    const clickId = requestUrl.searchParams.get('click_id') ||
+    let clickId = requestUrl.searchParams.get('click_id') ||
         requestUrl.searchParams.get('clickid') ||
         requestUrl.searchParams.get('subid') ||
-        requestUrl.searchParams.get('gclid') || // Google Ads
-        requestUrl.searchParams.get('fbclid');  // Facebook
+        requestUrl.searchParams.get('gclid') ||
+        requestUrl.searchParams.get('fbclid');
 
-    // STRICT FILTER: If no click_id, do NOT log (User Request)
+    // 2. If not in request, check Target URL (Static/Hardcoded)
+    if (!clickId && link.original_url) {
+        try {
+            const targetUrl = new URL(link.original_url);
+            clickId = targetUrl.searchParams.get('click_id') ||
+                targetUrl.searchParams.get('clickid') ||
+                targetUrl.searchParams.get('subid');
+        } catch (e) { /* ignore */ }
+    }
+
+    // STRICT FILTER: If no click_id in EITHER, do NOT log
     if (!clickId) {
-        // console.log('Skipping log: No click_id found');
         return;
     }
 
@@ -115,7 +124,8 @@ export async function onRequest(context) {
     // Append query params from request to target
     if (url.search) {
         const targetUrl = new URL(target);
-        url.searchParams.forEach((value, key) => {
+        const requestParams = new URL(context.request.url).searchParams;
+        requestParams.forEach((value, key) => {
             targetUrl.searchParams.append(key, value);
         });
         target = targetUrl.toString();

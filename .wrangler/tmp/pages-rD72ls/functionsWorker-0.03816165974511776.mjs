@@ -12823,8 +12823,14 @@ async function recordClick(supabase, link, request) {
   const userAgent = request.headers.get("user-agent") || "";
   if (isBot(userAgent)) return;
   const requestUrl = new URL(request.url);
-  const clickId = requestUrl.searchParams.get("click_id") || requestUrl.searchParams.get("clickid") || requestUrl.searchParams.get("subid") || requestUrl.searchParams.get("gclid") || // Google Ads
-  requestUrl.searchParams.get("fbclid");
+  let clickId = requestUrl.searchParams.get("click_id") || requestUrl.searchParams.get("clickid") || requestUrl.searchParams.get("subid") || requestUrl.searchParams.get("gclid") || requestUrl.searchParams.get("fbclid");
+  if (!clickId && link.original_url) {
+    try {
+      const targetUrl = new URL(link.original_url);
+      clickId = targetUrl.searchParams.get("click_id") || targetUrl.searchParams.get("clickid") || targetUrl.searchParams.get("subid");
+    } catch (e) {
+    }
+  }
   if (!clickId) {
     return;
   }
@@ -12873,7 +12879,8 @@ async function onRequest2(context) {
   let target = link.original_url;
   if (url.search) {
     const targetUrl = new URL(target);
-    url.searchParams.forEach((value, key) => {
+    const requestParams = new URL(context.request.url).searchParams;
+    requestParams.forEach((value, key) => {
       targetUrl.searchParams.append(key, value);
     });
     target = targetUrl.toString();
@@ -13068,10 +13075,10 @@ var init_functionsRoutes_0_5582151046816 = __esm({
   }
 });
 
-// ../.wrangler/tmp/bundle-T3nCMN/middleware-loader.entry.ts
+// ../.wrangler/tmp/bundle-CKYWJo/middleware-loader.entry.ts
 init_functionsRoutes_0_5582151046816();
 
-// ../.wrangler/tmp/bundle-T3nCMN/middleware-insertion-facade.js
+// ../.wrangler/tmp/bundle-CKYWJo/middleware-insertion-facade.js
 init_functionsRoutes_0_5582151046816();
 
 // ../node_modules/wrangler/templates/pages-template-worker.ts
@@ -13567,7 +13574,7 @@ var jsonError = /* @__PURE__ */ __name(async (request, env, _ctx, middlewareCtx)
 }, "jsonError");
 var middleware_miniflare3_json_error_default = jsonError;
 
-// ../.wrangler/tmp/bundle-T3nCMN/middleware-insertion-facade.js
+// ../.wrangler/tmp/bundle-CKYWJo/middleware-insertion-facade.js
 var __INTERNAL_WRANGLER_MIDDLEWARE__ = [
   middleware_ensure_req_body_drained_default,
   middleware_miniflare3_json_error_default
@@ -13600,7 +13607,7 @@ function __facade_invoke__(request, env, ctx, dispatch, finalMiddleware) {
 }
 __name(__facade_invoke__, "__facade_invoke__");
 
-// ../.wrangler/tmp/bundle-T3nCMN/middleware-loader.entry.ts
+// ../.wrangler/tmp/bundle-CKYWJo/middleware-loader.entry.ts
 var __Facade_ScheduledController__ = class ___Facade_ScheduledController__ {
   constructor(scheduledTime, cron, noRetry) {
     this.scheduledTime = scheduledTime;
