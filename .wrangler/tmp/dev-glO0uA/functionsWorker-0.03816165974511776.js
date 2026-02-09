@@ -13166,15 +13166,15 @@ __name(detectOS, "detectOS");
 async function recordClick(supabase, link, request) {
   const userAgent = request.headers.get("user-agent") || "";
   if (isBot(userAgent)) return;
+  const requestUrl = new URL(request.url);
+  const clickId = requestUrl.searchParams.get("click_id") || requestUrl.searchParams.get("clickid") || requestUrl.searchParams.get("subid") || requestUrl.searchParams.get("gclid") || // Google Ads
+  requestUrl.searchParams.get("fbclid");
+  if (!clickId) {
+    return;
+  }
   const country = request.cf?.country || "XX";
   const ip = request.headers.get("cf-connecting-ip") || "0.0.0.0";
   const os = detectOS(userAgent);
-  let clickId = null;
-  try {
-    const targetUrl = new URL(link.original_url);
-    clickId = targetUrl.searchParams.get("click_id") || targetUrl.searchParams.get("clickid") || targetUrl.searchParams.get("subid") || null;
-  } catch (e) {
-  }
   try {
     await supabase.from("clicks").insert({
       link_id: link.id,

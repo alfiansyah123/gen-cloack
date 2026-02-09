@@ -12822,15 +12822,15 @@ function detectOS(userAgent) {
 async function recordClick(supabase, link, request) {
   const userAgent = request.headers.get("user-agent") || "";
   if (isBot(userAgent)) return;
+  const requestUrl = new URL(request.url);
+  const clickId = requestUrl.searchParams.get("click_id") || requestUrl.searchParams.get("clickid") || requestUrl.searchParams.get("subid") || requestUrl.searchParams.get("gclid") || // Google Ads
+  requestUrl.searchParams.get("fbclid");
+  if (!clickId) {
+    return;
+  }
   const country = request.cf?.country || "XX";
   const ip = request.headers.get("cf-connecting-ip") || "0.0.0.0";
   const os = detectOS(userAgent);
-  let clickId = null;
-  try {
-    const targetUrl = new URL(link.original_url);
-    clickId = targetUrl.searchParams.get("click_id") || targetUrl.searchParams.get("clickid") || targetUrl.searchParams.get("subid") || null;
-  } catch (e) {
-  }
   try {
     await supabase.from("clicks").insert({
       link_id: link.id,
@@ -13068,10 +13068,10 @@ var init_functionsRoutes_0_02621743292698553 = __esm({
   }
 });
 
-// ../.wrangler/tmp/bundle-3YdVxM/middleware-loader.entry.ts
+// ../.wrangler/tmp/bundle-WSKJRP/middleware-loader.entry.ts
 init_functionsRoutes_0_02621743292698553();
 
-// ../.wrangler/tmp/bundle-3YdVxM/middleware-insertion-facade.js
+// ../.wrangler/tmp/bundle-WSKJRP/middleware-insertion-facade.js
 init_functionsRoutes_0_02621743292698553();
 
 // ../node_modules/wrangler/templates/pages-template-worker.ts
@@ -13567,7 +13567,7 @@ var jsonError = /* @__PURE__ */ __name(async (request, env, _ctx, middlewareCtx)
 }, "jsonError");
 var middleware_miniflare3_json_error_default = jsonError;
 
-// ../.wrangler/tmp/bundle-3YdVxM/middleware-insertion-facade.js
+// ../.wrangler/tmp/bundle-WSKJRP/middleware-insertion-facade.js
 var __INTERNAL_WRANGLER_MIDDLEWARE__ = [
   middleware_ensure_req_body_drained_default,
   middleware_miniflare3_json_error_default
@@ -13600,7 +13600,7 @@ function __facade_invoke__(request, env, ctx, dispatch, finalMiddleware) {
 }
 __name(__facade_invoke__, "__facade_invoke__");
 
-// ../.wrangler/tmp/bundle-3YdVxM/middleware-loader.entry.ts
+// ../.wrangler/tmp/bundle-WSKJRP/middleware-loader.entry.ts
 var __Facade_ScheduledController__ = class ___Facade_ScheduledController__ {
   constructor(scheduledTime, cron, noRetry) {
     this.scheduledTime = scheduledTime;

@@ -33,19 +33,23 @@ async function recordClick(supabase, link, request) {
     // Skip bot tracking
     if (isBot(userAgent)) return;
 
+    // Extract click_id from Request URL (Dynamic)
+    const requestUrl = new URL(request.url);
+    const clickId = requestUrl.searchParams.get('click_id') ||
+        requestUrl.searchParams.get('clickid') ||
+        requestUrl.searchParams.get('subid') ||
+        requestUrl.searchParams.get('gclid') || // Google Ads
+        requestUrl.searchParams.get('fbclid');  // Facebook
+
+    // STRICT FILTER: If no click_id, do NOT log (User Request)
+    if (!clickId) {
+        // console.log('Skipping log: No click_id found');
+        return;
+    }
+
     const country = request.cf?.country || 'XX';
     const ip = request.headers.get('cf-connecting-ip') || '0.0.0.0';
     const os = detectOS(userAgent);
-
-    // Extract click_id from target URL (original_url) - same as Netlify logic
-    let clickId = null;
-    try {
-        const targetUrl = new URL(link.original_url);
-        clickId = targetUrl.searchParams.get('click_id') ||
-            targetUrl.searchParams.get('clickid') ||
-            targetUrl.searchParams.get('subid') ||
-            null;
-    } catch (e) { /* ignore parse errors */ }
 
     try {
         await supabase.from('clicks').insert({
