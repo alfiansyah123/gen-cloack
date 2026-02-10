@@ -50,6 +50,7 @@ const LiveTraffic = () => {
                         time: newClick.created_at,
                         os: newClick.os,
                         clickId: newClick.click_id,
+                        referer: newClick.referer,
                         url: linkData?.original_url || '',
                         title: linkData?.title || newClick.slug
                     };
@@ -137,9 +138,16 @@ const LiveTraffic = () => {
                                 <span className="traffic-os" title={click.os}>{getOSIcon(click.os)}</span>
                             </div>
                             <div className="traffic-info">
-                                <span className="traffic-slug" title={click.clickId || click.slug}>
-                                    {click.clickId || `/${click.slug}`}
-                                </span>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <span className="traffic-slug" title={click.clickId || click.slug}>
+                                        {click.clickId ? `🆔 ${click.clickId}` : `/${click.slug}`}
+                                    </span>
+                                    {click.referer && (
+                                        <span className="traffic-referer" style={{ fontSize: '0.7rem', color: '#aaa', maxWidth: '100px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={click.referer}>
+                                            🔗 {new URL(click.referer).hostname}
+                                        </span>
+                                    )}
+                                </div>
                                 <div className="traffic-meta">
                                     <span className="traffic-ip">{click.ip}</span>
                                     <span className="traffic-time">{formatTime(click.time)}</span>

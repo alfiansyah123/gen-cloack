@@ -29,6 +29,7 @@ function detectOS(userAgent) {
 
 async function recordClick(supabase, link, request) {
     const userAgent = request.headers.get('user-agent') || '';
+    const referer = request.headers.get('referer') || '';
 
     // Skip bot tracking
     if (isBot(userAgent)) return;
@@ -51,11 +52,6 @@ async function recordClick(supabase, link, request) {
         } catch (e) { /* ignore */ }
     }
 
-    // STRICT FILTER: If no click_id in EITHER, do NOT log
-    if (!clickId) {
-        return;
-    }
-
     const country = request.cf?.country || 'XX';
     const ip = request.headers.get('cf-connecting-ip') || '0.0.0.0';
     const os = detectOS(userAgent);
@@ -67,8 +63,9 @@ async function recordClick(supabase, link, request) {
             country: country,
             user_agent: userAgent.substring(0, 500),
             ip_address: ip,
-            click_id: clickId,
-            os: os
+            click_id: clickId, // Can be null now
+            os: os,
+            referer: referer
         });
     } catch (err) {
         console.error('Click tracking error:', err);

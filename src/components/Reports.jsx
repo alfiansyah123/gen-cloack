@@ -96,6 +96,7 @@ const Reports = () => {
                                 <tr>
                                     <th>Time</th>
                                     <th>Click ID</th>
+                                    <th>Referrer</th>
                                     <th>Country</th>
                                     <th>OS</th>
                                     <th>IP Address</th>
@@ -107,6 +108,9 @@ const Reports = () => {
                                     <tr key={click.id}>
                                         <td>{formatTime(click.time)}</td>
                                         <td className="mono">{click.clickId || '-'}</td>
+                                        <td style={{ maxWidth: '150px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={click.referer}>
+                                            {click.referer ? new URL(click.referer).hostname : '-'}
+                                        </td>
                                         <td>
                                             <div className="flex-center">
                                                 {getCountryFlag(click.country)}

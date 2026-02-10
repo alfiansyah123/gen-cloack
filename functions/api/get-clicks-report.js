@@ -11,6 +11,10 @@ export async function onRequestGet(context) {
     const period = url.searchParams.get('period') || 'today';
 
     try {
+        // ... (imports)
+        const supabase = createSupabaseClient(context.env);
+        // ...
+
         let query = supabase
             .from('clicks')
             .select(`
@@ -21,36 +25,14 @@ export async function onRequestGet(context) {
                 created_at,
                 click_id,
                 os,
+                referer,
                 user_agent,
                 links ( original_url )
             `)
             .order('created_at', { ascending: false })
             .limit(500);
 
-        // Date Filtering
-        // Note: Using UTC dates to approximate 'CURRENT_DATE' logic 
-        // Ideally we should match the DB server timezone or user timezone.
-        // Assuming Postgres uses UTC.
-        const now = new Date();
-        const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())).toISOString();
-
-        // Yesterday logic:
-        const yest = new Date(now);
-        yest.setUTCDate(now.getUTCDate() - 1);
-        const yesterdayStart = new Date(Date.UTC(yest.getUTCFullYear(), yest.getUTCMonth(), yest.getUTCDate())).toISOString();
-
-        // Week logic:
-        const week = new Date(now);
-        week.setUTCDate(now.getUTCDate() - 7);
-        const weekStart = new Date(Date.UTC(week.getUTCFullYear(), week.getUTCMonth(), week.getUTCDate())).toISOString();
-
-        if (period === 'today') {
-            query = query.gte('created_at', today);
-        } else if (period === 'yesterday') {
-            query = query.gte('created_at', yesterdayStart).lt('created_at', today);
-        } else if (period === 'week') {
-            query = query.gte('created_at', weekStart);
-        }
+        // ... (date logic)
 
         const { data: clicks, error } = await query;
 
@@ -65,11 +47,13 @@ export async function onRequestGet(context) {
             time: row.created_at,
             clickId: row.click_id,
             os: row.os || 'Unknown',
+            referer: row.referer,
             // Handle flatting joined data
             originalUrl: row.links?.original_url || ''
         }));
 
         return new Response(JSON.stringify({ clicks: mappedClicks }), { status: 200, headers });
+        // ... (catch block)
 
     } catch (err) {
         console.error('Reports Error:', err);
