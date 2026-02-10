@@ -164,20 +164,19 @@ const LiveTraffic = () => {
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                     <span className="traffic-slug" title={click.clickId || click.slug}>
                                         {click.clickId
-                                            ? `🆔 ${click.clickId.length > 15 ? click.clickId.substring(0, 15) + '...' : click.clickId}`
+                                            ? (click.clickId.length > 20 ? click.clickId.substring(0, 20) + '...' : click.clickId)
                                             : `/${click.slug}`}
                                     </span>
-                                </span>
-                            </div>
-                            <div className="traffic-meta">
-                                <span className="traffic-ip">{click.ip}</span>
-                                <span className="traffic-time">{formatTime(click.time)}</span>
+                                </div>
+                                <div className="traffic-meta">
+                                    <span className="traffic-ip">{click.ip}</span>
+                                    <span className="traffic-time">{formatTime(click.time)}</span>
+                                </div>
                             </div>
                         </div>
-                        </div>
-            ))
+                    ))
                 )}
-        </div>
+            </div>
         </div >
     );
 };
