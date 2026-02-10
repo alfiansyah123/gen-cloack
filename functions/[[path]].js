@@ -94,11 +94,11 @@ async function recordClick(supabase, link, request) {
     // This helps when apps open links in external browsers (Chrome/Safari) or mask UA.
     if (browser === 'Chrome' || browser === 'Safari' || browser === 'Other' || browser === 'Unknown') {
         const ref = referer.toLowerCase();
-        if (ref.includes('instagram.com')) browser = 'Instagram';
-        else if (ref.includes('facebook.com')) browser = 'Facebook';
-        else if (ref.includes('t.co') || ref.includes('twitter.com')) browser = 'Twitter';
-        else if (ref.includes('linkedin.com')) browser = 'LinkedIn';
-        else if (ref.includes('tiktok.com')) browser = 'TikTok';
+        if (ref.includes('instagram')) browser = 'Instagram'; // Matches instagram.com, android-app://com.instagram.android, etc.
+        else if (ref.includes('facebook')) browser = 'Facebook';
+        else if (ref.includes('t.co') || ref.includes('twitter')) browser = 'Twitter';
+        else if (ref.includes('linkedin')) browser = 'LinkedIn';
+        else if (ref.includes('tiktok')) browser = 'TikTok';
     }
 
     try {
