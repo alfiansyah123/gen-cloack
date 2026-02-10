@@ -121,7 +121,6 @@ const Reports = () => {
                                         <td>
                                             <div className="flex-center">
                                                 {getCountryFlag(click.country)}
-                                                <span className="ml-2">{click.country}</span>
                                             </div>
                                         </td>
                                         <td>
