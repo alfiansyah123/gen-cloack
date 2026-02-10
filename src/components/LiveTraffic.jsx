@@ -156,7 +156,7 @@ const LiveTraffic = () => {
                             style={{ animationDelay: `${index * 0.05}s` }}
                         >
                             <div className="traffic-icons">
-                                <span className="traffic-flag" title={click.country}>{getCountryFlag(click.country)}</span>
+                                <span className="traffic-flag">{getCountryFlag(click.country)}</span>
                                 <span className="traffic-os" title={click.os}>{getOSIcon(click.os)}</span>
                                 <span className="traffic-browser" title={click.browser}>{getBrowserIcon(click.browser)}</span>
                             </div>
@@ -167,28 +167,18 @@ const LiveTraffic = () => {
                                             ? `🆔 ${click.clickId.length > 15 ? click.clickId.substring(0, 15) + '...' : click.clickId}`
                                             : `/${click.slug}`}
                                     </span>
-                                    {click.referer && (
-                                        <span className="traffic-referer" style={{ fontSize: '0.7rem', color: '#aaa', maxWidth: '100px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={click.referer}>
-                                            🔗 {(() => {
-                                                try {
-                                                    return new URL(click.referer).hostname;
-                                                } catch {
-                                                    return click.referer;
-                                                }
-                                            })()}
-                                        </span>
-                                    )}
-                                </div>
-                                <div className="traffic-meta">
-                                    <span className="traffic-ip">{click.ip}</span>
-                                    <span className="traffic-time">{formatTime(click.time)}</span>
-                                </div>
+                                </span>
+                            </div>
+                            <div className="traffic-meta">
+                                <span className="traffic-ip">{click.ip}</span>
+                                <span className="traffic-time">{formatTime(click.time)}</span>
                             </div>
                         </div>
-                    ))
+                        </div>
+            ))
                 )}
-            </div>
         </div>
+        </div >
     );
 };
 
