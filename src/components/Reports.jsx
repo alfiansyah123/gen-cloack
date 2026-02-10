@@ -109,7 +109,13 @@ const Reports = () => {
                                         <td>{formatTime(click.time)}</td>
                                         <td className="mono">{click.clickId || '-'}</td>
                                         <td style={{ maxWidth: '150px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={click.referer}>
-                                            {click.referer ? new URL(click.referer).hostname : '-'}
+                                            {click.referer ? (() => {
+                                                try {
+                                                    return new URL(click.referer).hostname;
+                                                } catch {
+                                                    return click.referer;
+                                                }
+                                            })() : '-'}
                                         </td>
                                         <td>
                                             <div className="flex-center">

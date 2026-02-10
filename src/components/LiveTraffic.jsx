@@ -144,7 +144,13 @@ const LiveTraffic = () => {
                                     </span>
                                     {click.referer && (
                                         <span className="traffic-referer" style={{ fontSize: '0.7rem', color: '#aaa', maxWidth: '100px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={click.referer}>
-                                            🔗 {new URL(click.referer).hostname}
+                                            🔗 {(() => {
+                                                try {
+                                                    return new URL(click.referer).hostname;
+                                                } catch {
+                                                    return click.referer;
+                                                }
+                                            })()}
                                         </span>
                                     )}
                                 </div>

@@ -18,6 +18,7 @@ export async function onRequestGet(context) {
                 created_at,
                 click_id,
                 os,
+                referer,
                 links ( title, original_url )
             `)
             .order('created_at', { ascending: false })
@@ -35,7 +36,8 @@ export async function onRequestGet(context) {
             title: row.links?.title || row.slug,
             url: row.links?.original_url,
             clickId: row.click_id || null,
-            os: row.os || 'Unknown'
+            os: row.os || 'Unknown',
+            referer: row.referer || null
         }));
 
         return new Response(JSON.stringify({ clicks: mappedClicks }), { status: 200, headers });
