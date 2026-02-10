@@ -44,6 +44,6 @@ export async function onRequestGet(context) {
 
     } catch (err) {
         console.error('Recent Clicks Error:', err);
-        return new Response(JSON.stringify({ error: 'Failed to fetch messages' }), { status: 500, headers });
+        return new Response(JSON.stringify({ error: err.message, details: err }), { status: 500, headers });
     }
 }
