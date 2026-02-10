@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Referrer</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            padding: 20px;
+            text-align: center;
+        }
+
+        input {
+            padding: 10px;
+            width: 300px;
+            margin-bottom: 20px;
+        }
+
+        button {
+            padding: 10px 20px;
+            cursor: pointer;
+            background: #FF512F;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Referrer Test Page</h1>
+    <p>Paste your generated link below and click "Go".</p>
+    <p>This will send a referrer header strictly from this domain.</p>
+
+    <input type="text" id="linkInput" placeholder="https://your-domain.com/your-slug">
+    <br>
+    <button onclick="goToLink()">Go to Link</button>
+
+    <script>
+        function goToLink() {
+            const url = document.getElementById('linkInput').value;
+            if (url) {
+                window.location.href = url;
+            } else {
+                alert('Please enter a URL');
+            }
+        }
+    </script>
+</body>
+
+</html>
