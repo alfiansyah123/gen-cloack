@@ -18,6 +18,7 @@ export async function onRequestGet(context) {
                 created_at,
                 click_id,
                 os,
+                browser,
                 referer,
                 links ( title, original_url )
             `)
@@ -37,6 +38,7 @@ export async function onRequestGet(context) {
             url: row.links?.original_url,
             clickId: row.click_id || null,
             os: row.os || 'Unknown',
+            browser: row.browser || 'Other',
             referer: row.referer || null
         }));
 

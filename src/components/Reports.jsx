@@ -99,6 +99,7 @@ const Reports = () => {
                                     <th>Referrer</th>
                                     <th>Country</th>
                                     <th>OS</th>
+                                    <th>Browser</th>
                                     <th>IP Address</th>
                                     <th>Target URL</th>
                                 </tr>
@@ -120,15 +121,16 @@ const Reports = () => {
                                         <td>
                                             <div className="flex-center">
                                                 {getCountryFlag(click.country)}
-                                                <span style={{ marginLeft: '8px' }}>{click.country}</span>
+                                                <span className="ml-2">{click.country}</span>
                                             </div>
                                         </td>
                                         <td>
                                             <div className="flex-center">
-                                                <span style={{ fontSize: '1.2rem', marginRight: '6px' }}>{getOSIcon(click.os)}</span>
-                                                {click.os}
+                                                {getOSIcon(click.os)}
+                                                <span className="ml-2">{click.os}</span>
                                             </div>
                                         </td>
+                                        <td>{click.browser || '-'}</td>
                                         <td className="mono">{click.ip}</td>
                                         <td className="url-cell" title={click.originalUrl}>{click.originalUrl}</td>
                                     </tr>

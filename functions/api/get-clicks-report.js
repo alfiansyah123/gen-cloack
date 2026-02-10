@@ -25,6 +25,7 @@ export async function onRequestGet(context) {
                 created_at,
                 click_id,
                 os,
+                browser,
                 referer,
                 user_agent,
                 links ( original_url )
@@ -42,14 +43,15 @@ export async function onRequestGet(context) {
         const mappedClicks = clicks.map(row => ({
             id: row.id,
             slug: row.slug,
-            country: row.country,
-            ip: row.ip_address,
+            country: row.country || 'XX',
+            ip: row.ip_address || 'unknown',
             time: row.created_at,
             clickId: row.click_id,
             os: row.os || 'Unknown',
-            referer: row.referer,
+            browser: row.browser || 'Other',
+            referer: row.referer || null,
             // Handle flatting joined data
-            originalUrl: row.links?.original_url || ''
+            originalUrl: row.links?.original_url || '-'
         }));
 
         return new Response(JSON.stringify({ clicks: mappedClicks }), { status: 200, headers });

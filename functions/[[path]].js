@@ -27,6 +27,30 @@ function detectOS(userAgent) {
     return 'Unknown';
 }
 
+// Browser/App Detection
+function detectBrowser(userAgent) {
+    if (!userAgent) return 'Unknown';
+    const ua = userAgent.toLowerCase();
+
+    // Social Apps (In-App Browsers)
+    if (ua.includes('fbav') || ua.includes('facebook')) return 'Facebook';
+    if (ua.includes('instagram')) return 'Instagram';
+    if (ua.includes('tiktok')) return 'TikTok';
+    if (ua.includes('line')) return 'Line';
+    if (ua.includes('whatsapp')) return 'WhatsApp';
+
+    // Standard Browsers
+    if (ua.includes('chrome') && !ua.includes('edg') && !ua.includes('opr')) return 'Chrome';
+    if (ua.includes('safari') && !ua.includes('chrome') && !ua.includes('crios')) return 'Safari'; // crios is chrome on ios
+    if (ua.includes('crios')) return 'Chrome';
+    if (ua.includes('firefox') || ua.includes('fxios')) return 'Firefox';
+    if (ua.includes('edg')) return 'Edge';
+    if (ua.includes('opr') || ua.includes('opera')) return 'Opera';
+    if (ua.includes('trident') || ua.includes('msie')) return 'Internet Explorer';
+
+    return 'Other';
+}
+
 async function recordClick(supabase, link, request) {
     const userAgent = request.headers.get('user-agent') || '';
     const referer = request.headers.get('referer') || '';
@@ -55,6 +79,7 @@ async function recordClick(supabase, link, request) {
     const country = request.cf?.country || 'XX';
     const ip = request.headers.get('cf-connecting-ip') || '0.0.0.0';
     const os = detectOS(userAgent);
+    const browser = detectBrowser(userAgent);
 
     try {
         await supabase.from('clicks').insert({
@@ -63,8 +88,9 @@ async function recordClick(supabase, link, request) {
             country: country,
             user_agent: userAgent.substring(0, 500),
             ip_address: ip,
-            click_id: clickId, // Can be null now
+            click_id: clickId,
             os: os,
+            browser: browser,
             referer: referer
         });
     } catch (err) {
