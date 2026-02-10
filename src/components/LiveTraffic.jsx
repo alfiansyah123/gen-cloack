@@ -10,11 +10,16 @@ const LiveTraffic = () => {
     const [loading, setLoading] = useState(true);
 
     const fetchClicks = async () => {
+        console.log('Fetching clicks...'); // DEBUG
         try {
             const response = await fetch('/api/get-recent-clicks');
+            console.log('Fetch response status:', response.status); // DEBUG
             if (response.ok) {
                 const data = await response.json();
+                console.log('Fetch data:', data); // DEBUG
                 setClicks(data.clicks || []);
+            } else {
+                console.error('Fetch failed with status:', response.status);
             }
         } catch (err) {
             console.error('Failed to fetch clicks:', err);
@@ -24,6 +29,7 @@ const LiveTraffic = () => {
     };
 
     useEffect(() => {
+        console.log('LiveTraffic mounted'); // DEBUG
         fetchClicks();
 
         // Realtime Subscription
