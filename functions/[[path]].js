@@ -32,21 +32,25 @@ function detectBrowser(userAgent) {
     if (!userAgent) return 'Unknown';
     const ua = userAgent.toLowerCase();
 
-    // Social Apps (In-App Browsers)
-    if (ua.includes('fbav') || ua.includes('facebook')) return 'Facebook';
+    // Social Apps (In-App Browsers) - Priority
+    // Facebook: FBAV (iOS), FBAN (Android), FBIAB (In-App Browser)
+    if (ua.includes('fbav') || ua.includes('fban') || ua.includes('fbiab') || ua.includes('facebook')) return 'Facebook';
     if (ua.includes('instagram')) return 'Instagram';
-    if (ua.includes('tiktok')) return 'TikTok';
+    if (ua.includes('tiktok') || ua.includes('musical_ly')) return 'TikTok'; // musical_ly is old tiktok
     if (ua.includes('line')) return 'Line';
     if (ua.includes('whatsapp')) return 'WhatsApp';
+    if (ua.includes('snapchat')) return 'Snapchat';
+    if (ua.includes('twitter') || ua.includes('cfnetwork')) return 'Twitter'; // CFNetwork sometimes indicates iOS app
 
     // Standard Browsers
-    if (ua.includes('chrome') && !ua.includes('edg') && !ua.includes('opr')) return 'Chrome';
-    if (ua.includes('safari') && !ua.includes('chrome') && !ua.includes('crios')) return 'Safari'; // crios is chrome on ios
-    if (ua.includes('crios')) return 'Chrome';
+    if (ua.includes('chrome') && !ua.includes('edg') && !ua.includes('opr') && !ua.includes('crios')) return 'Chrome';
+    if (ua.includes('crios')) return 'Chrome'; // Chrome on iOS
+    if (ua.includes('safari') && !ua.includes('chrome') && !ua.includes('crios') && !ua.includes('fban') && !ua.includes('fbav')) return 'Safari';
     if (ua.includes('firefox') || ua.includes('fxios')) return 'Firefox';
-    if (ua.includes('edg')) return 'Edge';
+    if (ua.includes('edg') || ua.includes('edge')) return 'Edge';
     if (ua.includes('opr') || ua.includes('opera')) return 'Opera';
     if (ua.includes('trident') || ua.includes('msie')) return 'Internet Explorer';
+    if (ua.includes('ucbrowser') || ua.includes('ucweb')) return 'UC Browser';
 
     return 'Other';
 }

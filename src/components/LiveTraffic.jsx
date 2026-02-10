@@ -163,7 +163,9 @@ const LiveTraffic = () => {
                             <div className="traffic-info">
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                     <span className="traffic-slug" title={click.clickId || click.slug}>
-                                        {click.clickId ? `🆔 ${click.clickId}` : `/${click.slug}`}
+                                        {click.clickId
+                                            ? `🆔 ${click.clickId.length > 15 ? click.clickId.substring(0, 15) + '...' : click.clickId}`
+                                            : `/${click.slug}`}
                                     </span>
                                     {click.referer && (
                                         <span className="traffic-referer" style={{ fontSize: '0.7rem', color: '#aaa', maxWidth: '100px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={click.referer}>
