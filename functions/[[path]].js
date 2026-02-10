@@ -62,15 +62,13 @@ async function recordClick(supabase, link, request) {
     // Skip bot tracking
     if (isBot(userAgent)) return;
 
-    // 1. Extract click_id from Request URL (Dynamic - Priority)
+    // 1. Extract explicit click_id from Request URL (Dynamic - Highest Priority)
     const requestUrl = new URL(request.url);
     let clickId = requestUrl.searchParams.get('click_id') ||
         requestUrl.searchParams.get('clickid') ||
-        requestUrl.searchParams.get('subid') ||
-        requestUrl.searchParams.get('gclid') ||
-        requestUrl.searchParams.get('fbclid');
+        requestUrl.searchParams.get('subid');
 
-    // 2. If not in request, check Target URL (Static/Hardcoded)
+    // 2. If no explicit ID in request, check Target URL (Static/Hardcoded - Medium Priority)
     if (!clickId && link.original_url) {
         try {
             const targetUrl = new URL(link.original_url);
@@ -78,6 +76,13 @@ async function recordClick(supabase, link, request) {
                 targetUrl.searchParams.get('clickid') ||
                 targetUrl.searchParams.get('subid');
         } catch (e) { /* ignore */ }
+    }
+
+    // 3. Fallback to Ad Network IDs (Lowest Priority - only if no other ID exists)
+    // This prevents fbclid/gclid from overwriting a hardcoded "ALCEMEIST-noGEN"
+    if (!clickId) {
+        clickId = requestUrl.searchParams.get('gclid') ||
+            requestUrl.searchParams.get('fbclid');
     }
 
     const country = request.cf?.country || 'XX';
