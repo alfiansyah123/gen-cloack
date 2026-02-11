@@ -90,15 +90,28 @@ async function recordClick(supabase, link, request) {
     const os = detectOS(userAgent);
     let browser = detectBrowser(userAgent);
 
-    // Fallback: If browser is generic standard but Referrer indicates a social platform, use that.
-    // This helps when apps open links in external browsers (Chrome/Safari) or mask UA.
+    // Fallback 1: If browser is generic but Referrer indicates a social platform, use that.
     if (browser === 'Chrome' || browser === 'Safari' || browser === 'Other' || browser === 'Unknown') {
         const ref = referer.toLowerCase();
-        if (ref.includes('instagram')) browser = 'Instagram'; // Matches instagram.com, android-app://com.instagram.android, etc.
-        else if (ref.includes('facebook')) browser = 'Facebook';
+        if (ref.includes('instagram') || ref.includes('l.instagram')) browser = 'Instagram';
+        else if (ref.includes('facebook') || ref.includes('l.facebook') || ref.includes('lm.facebook')) browser = 'Facebook';
         else if (ref.includes('t.co') || ref.includes('twitter')) browser = 'Twitter';
         else if (ref.includes('linkedin')) browser = 'LinkedIn';
         else if (ref.includes('tiktok')) browser = 'TikTok';
+    }
+
+    // Fallback 2: Check URL query params added by social platforms
+    // Instagram adds ?igshid= or ?igsh=, Facebook adds ?fbclid=
+    if (browser === 'Chrome' || browser === 'Safari' || browser === 'Other' || browser === 'Unknown') {
+        if (requestUrl.searchParams.has('igshid') || requestUrl.searchParams.has('igsh')) {
+            browser = 'Instagram';
+        } else if (requestUrl.searchParams.has('fbclid')) {
+            browser = 'Facebook';
+        } else if (requestUrl.searchParams.has('ttclid')) {
+            browser = 'TikTok';
+        } else if (requestUrl.searchParams.has('twclid')) {
+            browser = 'Twitter';
+        }
     }
 
     try {

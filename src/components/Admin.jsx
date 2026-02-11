@@ -14,13 +14,26 @@ const Admin = () => {
 
     // Load saved credentials & initial data
     useEffect(() => {
-        const savedToken = localStorage.getItem('cf_token') || '';
-        const savedAccountId = localStorage.getItem('cf_account_id') || '';
-        setCfToken(savedToken);
-        setCfAccountId(savedAccountId);
+        fetchSettings();
         fetchDomains();
         fetchCurrentPassword();
     }, []);
+
+    const fetchSettings = async () => {
+        try {
+            // Fetch CF Token
+            const tokenRes = await fetch('/api/get-settings?key=cf_token');
+            const tokenData = await tokenRes.json();
+            if (tokenData.success && tokenData.data) setCfToken(tokenData.data.value);
+
+            // Fetch CF Account ID
+            const accRes = await fetch('/api/get-settings?key=cf_account_id');
+            const accData = await accRes.json();
+            if (accData.success && accData.data) setCfAccountId(accData.data.value);
+        } catch (err) {
+            console.error('Failed to fetch settings:', err);
+        }
+    };
 
     const fetchCurrentPassword = async () => {
         try {
@@ -33,7 +46,6 @@ const Admin = () => {
             console.error('Failed to fetch password:', err);
         }
     };
-
 
     const fetchDomains = async () => {
         try {
@@ -75,11 +87,30 @@ const Admin = () => {
         }
     };
 
-    const saveCredentials = () => {
-        localStorage.setItem('cf_token', cfToken);
-        localStorage.setItem('cf_account_id', cfAccountId);
-        setMessage({ type: 'success', text: 'Credentials saved!' });
-        setTimeout(() => setMessage({ type: '', text: '' }), 3000);
+    const saveCredentials = async () => {
+        setLoading(true);
+        try {
+            // Save Token
+            await fetch('/api/save-settings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ key: 'cf_token', value: cfToken })
+            });
+
+            // Save Account ID
+            await fetch('/api/save-settings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ key: 'cf_account_id', value: cfAccountId })
+            });
+
+            setMessage({ type: 'success', text: 'Credentials saved to Database!' });
+            setTimeout(() => setMessage({ type: '', text: '' }), 3000);
+        } catch (err) {
+            setMessage({ type: 'error', text: 'Failed to save credentials' });
+        } finally {
+            setLoading(false);
+        }
     };
 
     const addDomainWithCloudflare = async () => {
