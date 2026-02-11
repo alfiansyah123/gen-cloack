@@ -100,8 +100,8 @@
 }
 
 .flag-img {
-    width: 32px;
-    height: 22px;
+    width: 22px;
+    height: 15px;
     object-fit: cover;
     border-radius: 3px;
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25), 0 0 0 0.5px rgba(0, 0, 0, 0.1);
