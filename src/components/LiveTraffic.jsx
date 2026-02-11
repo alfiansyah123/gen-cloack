@@ -83,10 +83,11 @@ const LiveTraffic = () => {
         }
         return (
             <img
-                src={`https://flagcdn.com/24x18/${country.toLowerCase()}.png`}
+                src={`https://flagcdn.com/w80/${country.toLowerCase()}.png`}
+                srcSet={`https://flagcdn.com/w160/${country.toLowerCase()}.png 2x`}
                 alt={country}
-                style={{ width: '24px', height: '18px', borderRadius: '2px' }}
-                onError={(e) => { e.target.style.display = 'none'; }}
+                className="flag-img"
+                onError={(e) => { e.target.outerHTML = '<span style="font-size:1.2rem">🌍</span>'; }}
             />
         );
     };
