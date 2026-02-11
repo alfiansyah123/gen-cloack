@@ -5,9 +5,9 @@ function isBot(userAgent) {
     if (!userAgent) return true;
     const ua = userAgent.toLowerCase();
     const bots = [
-        'facebookexternalhit', 'twitterbot', 'whatsapp', 'linkedinbot',
-        'pinterest', 'slackbot', 'telegrambot', 'discordbot', 'googlebot',
-        'bingbot', 'yandex', 'duckduckgo', 'baidu', 'ahern', 'instagram',
+        'facebookexternalhit', 'twitterbot', 'linkedinbot',
+        'pinterest/0.', 'slackbot', 'telegrambot', 'discordbot', 'googlebot',
+        'bingbot', 'yandex', 'duckduckgo', 'baidu',
         'mj12bot', 'semrush', 'ahrefs', 'dotbot', 'rogerbot', 'exabot'
     ];
     return bots.some(bot => ua.includes(bot));
