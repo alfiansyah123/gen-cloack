@@ -1,7 +1,22 @@
 import { createSupabaseClient } from './utils/supabase';
 
-// Bot detection for OG tag serving (social media crawlers)
-function isBot(userAgent) {
+// Bot detection for CLICK TRACKING exclusion (narrow - only SEO/scraper bots)
+// Does NOT include social media in-app browsers (Instagram, Facebook, WhatsApp)
+function isTrackingBot(userAgent) {
+    if (!userAgent) return true;
+    const ua = userAgent.toLowerCase();
+    const bots = [
+        'facebookexternalhit', 'twitterbot', 'linkedinbot',
+        'pinterest/0.', 'slackbot', 'telegrambot', 'discordbot', 'googlebot',
+        'bingbot', 'yandex', 'duckduckgo', 'baidu',
+        'mj12bot', 'semrush', 'ahrefs', 'dotbot', 'rogerbot', 'exabot'
+    ];
+    return bots.some(bot => ua.includes(bot));
+}
+
+// Bot detection for OG PREVIEW serving (broad - includes social media crawlers)
+// Catches crawlers that fetch link previews for WhatsApp, Instagram, etc.
+function isPreviewBot(userAgent) {
     if (!userAgent) return true;
     const ua = userAgent.toLowerCase();
     const bots = [
@@ -59,8 +74,8 @@ async function recordClick(supabase, link, request) {
     const userAgent = request.headers.get('user-agent') || '';
     const referer = request.headers.get('referer') || '';
 
-    // Skip bot tracking
-    if (isBot(userAgent)) return;
+    // Skip bot tracking (only SEO/scraper bots, NOT in-app browsers)
+    if (isTrackingBot(userAgent)) return;
 
     // 1. Extract explicit click_id from Request URL (Dynamic - Highest Priority)
     const requestUrl = new URL(request.url);
@@ -180,7 +195,7 @@ export async function onRequest(context) {
     // If no custom metadata, let bots follow redirect to target site's own OG tags
     const hasCustomMeta = link.title || link.description || link.image_url;
 
-    if (isBot(userAgent) && hasCustomMeta) {
+    if (isPreviewBot(userAgent) && hasCustomMeta) {
         const title = (link.title || 'Link Preview').replace(/"/g, '&quot;').replace(/</g, '&lt;');
         const description = (link.description || 'Click to view this link').replace(/"/g, '&quot;').replace(/</g, '&lt;');
         const image = link.image_url || '';
