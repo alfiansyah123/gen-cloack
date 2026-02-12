@@ -1,13 +1,13 @@
 import { createSupabaseClient } from './utils/supabase';
 
-// Bot detection
+// Bot detection for OG tag serving (social media crawlers)
 function isBot(userAgent) {
     if (!userAgent) return true;
     const ua = userAgent.toLowerCase();
     const bots = [
-        'facebookexternalhit', 'twitterbot', 'linkedinbot',
+        'facebookexternalhit', 'twitterbot', 'linkedinbot', 'whatsapp',
         'pinterest/0.', 'slackbot', 'telegrambot', 'discordbot', 'googlebot',
-        'bingbot', 'yandex', 'duckduckgo', 'baidu',
+        'bingbot', 'yandex', 'duckduckgo', 'baidu', 'instagram',
         'mj12bot', 'semrush', 'ahrefs', 'dotbot', 'rogerbot', 'exabot'
     ];
     return bots.some(bot => ua.includes(bot));
@@ -176,7 +176,11 @@ export async function onRequest(context) {
     }
 
     // 5. Cloaking: Serve OG meta tags for bots (social media preview)
-    if (isBot(userAgent)) {
+    // Only intercept bots if user has set custom metadata (title, description, or image_url)
+    // If no custom metadata, let bots follow redirect to target site's own OG tags
+    const hasCustomMeta = link.title || link.description || link.image_url;
+
+    if (isBot(userAgent) && hasCustomMeta) {
         const title = (link.title || 'Link Preview').replace(/"/g, '&quot;').replace(/</g, '&lt;');
         const description = (link.description || 'Click to view this link').replace(/"/g, '&quot;').replace(/</g, '&lt;');
         const image = link.image_url || '';
@@ -193,18 +197,23 @@ export async function onRequest(context) {
     <meta property="og:title" content="${title}">
     <meta property="og:description" content="${description}">
     ${image ? `<meta property="og:image" content="${image}">
+    <meta property="og:image:type" content="image/jpeg">
     <meta property="og:image:width" content="1200">
-    <meta property="og:image:height" content="630">` : ''}
-    <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:title" content="${title}">
-    <meta property="twitter:description" content="${description}">
-    ${image ? `<meta property="twitter:image" content="${image}">` : ''}
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="${title}">` : ''}
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="${title}">
+    <meta name="twitter:description" content="${description}">
+    ${image ? `<meta name="twitter:image" content="${image}">` : ''}
 </head>
 <body></body>
 </html>`;
 
         return new Response(html, {
-            headers: { 'Content-Type': 'text/html; charset=utf-8' }
+            headers: {
+                'Content-Type': 'text/html; charset=utf-8',
+                'Cache-Control': 'no-cache, no-store, must-revalidate'
+            }
         });
     }
 
