@@ -175,7 +175,36 @@ export async function onRequest(context) {
         return Response.redirect(redirectUrl, 302);
     }
 
-    // 5. Final Redirect
+    // 5. Cloaking: Serve OG meta tags for bots (social media preview)
+    if (isBot(userAgent)) {
+        const title = (link.title || 'Link Preview').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+        const description = (link.description || 'Click to view this link').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+        const image = link.image_url || '';
+
+        const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>${title}</title>
+    <meta name="description" content="${description}">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="${title}">
+    <meta property="og:description" content="${description}">
+    ${image ? `<meta property="og:image" content="${image}">` : ''}
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:title" content="${title}">
+    <meta property="twitter:description" content="${description}">
+    ${image ? `<meta property="twitter:image" content="${image}">` : ''}
+</head>
+<body></body>
+</html>`;
+
+        return new Response(html, {
+            headers: { 'Content-Type': 'text/html; charset=utf-8' }
+        });
+    }
+
+    // 6. Final Redirect (for real users)
     let target = link.original_url;
     // Append query params from request to target
     if (url.search) {
