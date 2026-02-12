@@ -14,18 +14,30 @@ function isTrackingBot(userAgent) {
     return bots.some(bot => ua.includes(bot));
 }
 
-// Bot detection for OG PREVIEW serving (broad - includes social media crawlers)
-// Catches crawlers that fetch link previews for WhatsApp, Instagram, etc.
+// Bot detection for OG PREVIEW serving (social media crawlers only)
+// Key: Instagram/WhatsApp CRAWLERS don't have 'Mozilla' in their UA,
+// but their IN-APP BROWSERS do. So we only match them when no 'Mozilla' present.
 function isPreviewBot(userAgent) {
     if (!userAgent) return true;
     const ua = userAgent.toLowerCase();
-    const bots = [
-        'facebookexternalhit', 'twitterbot', 'linkedinbot', 'whatsapp',
+
+    // Standard bots - always match regardless of Mozilla
+    const standardBots = [
+        'facebookexternalhit', 'twitterbot', 'linkedinbot',
         'pinterest/0.', 'slackbot', 'telegrambot', 'discordbot', 'googlebot',
-        'bingbot', 'yandex', 'duckduckgo', 'baidu', 'instagram',
+        'bingbot', 'yandex', 'duckduckgo', 'baidu',
         'mj12bot', 'semrush', 'ahrefs', 'dotbot', 'rogerbot', 'exabot'
     ];
-    return bots.some(bot => ua.includes(bot));
+    if (standardBots.some(bot => ua.includes(bot))) return true;
+
+    // Social media crawlers - only match if NOT a real browser (no Mozilla = crawler)
+    // e.g. "WhatsApp/2.23.xx" = crawler ✅, "Mozilla/5.0 ... Instagram 275.0 ..." = in-app browser ❌
+    if (!ua.includes('mozilla')) {
+        const socialCrawlers = ['instagram', 'whatsapp'];
+        if (socialCrawlers.some(bot => ua.includes(bot))) return true;
+    }
+
+    return false;
 }
 
 // OS Detection
