@@ -180,6 +180,7 @@ export async function onRequest(context) {
         const title = (link.title || 'Link Preview').replace(/"/g, '&quot;').replace(/</g, '&lt;');
         const description = (link.description || 'Click to view this link').replace(/"/g, '&quot;').replace(/</g, '&lt;');
         const image = link.image_url || '';
+        const pageUrl = url.toString();
 
         const html = `<!DOCTYPE html>
 <html lang="en">
@@ -188,9 +189,12 @@ export async function onRequest(context) {
     <title>${title}</title>
     <meta name="description" content="${description}">
     <meta property="og:type" content="website">
+    <meta property="og:url" content="${pageUrl}">
     <meta property="og:title" content="${title}">
     <meta property="og:description" content="${description}">
-    ${image ? `<meta property="og:image" content="${image}">` : ''}
+    ${image ? `<meta property="og:image" content="${image}">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">` : ''}
     <meta property="twitter:card" content="summary_large_image">
     <meta property="twitter:title" content="${title}">
     <meta property="twitter:description" content="${description}">
